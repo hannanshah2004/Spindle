@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@browserbasehq/stagehand": "^2.0.0",
     "@clerk/nextjs": "^6.13.0",
     "@prisma/client": "^6.5.0",
     "dockerode": "^4.0.5",
@@ -17,7 +18,8 @@
     "pg": "^8.14.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
