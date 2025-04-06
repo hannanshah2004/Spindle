@@ -115,27 +115,6 @@ export default async function Dashboard() {
               </div>
             </div>
 
-            {/* Usage chart placeholder */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-semibold text-slate-800">Usage Overview</h3>
-                <div className="flex gap-2">
-                  <button className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition-colors">
-                    Day
-                  </button>
-                  <button className="text-xs bg-slate-800 text-white px-2 py-1 rounded">Week</button>
-                  <button className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded transition-colors">
-                    Month
-                  </button>
-                </div>
-              </div>
-              <div className="h-48 flex items-center justify-center bg-slate-50 rounded-lg border border-slate-100">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <BarChart3 className="h-5 w-5" />
-                  <span>Usage statistics will appear here</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Sidebar */}
