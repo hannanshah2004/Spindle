@@ -40,7 +40,11 @@ export async function initializeStagehand(sessionId: string): Promise<Stagehand>
       modelClientOptions: {
         apiKey: process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY,
       },
-      verbose: 1
+      verbose: 2,
+      disablePino: true, // Disable Pino logger for Next.js compatibility
+      localBrowserLaunchOptions: {
+        headless: false // Launch browser visibly for debugging
+      }
     });
     
     // Initialize it

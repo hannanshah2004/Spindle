@@ -31,6 +31,7 @@ const prisma = new PrismaClient();
 interface RequestBody {
   projectId: string;
   startUrl?: string;
+  nlpInstruction?: string; // Add NLP instruction field
   // Add other necessary session creation parameters here (e.g., browser type, contextId?)
 }
 
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
     }
     
     const body: RequestBody = await request.json();
-    const { projectId, startUrl } = body;
+    const { projectId, startUrl, nlpInstruction } = body; // Destructure nlpInstruction
 
     if (!projectId) {
       return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
@@ -115,6 +116,7 @@ export async function POST(request: Request) {
         projectId: projectId,
         lastUsedAt: new Date(),
         startUrl: startUrl || 'https://example.com', // Use provided URL or default
+        nlpInstruction: nlpInstruction, // Store the instruction
       },
     });
 

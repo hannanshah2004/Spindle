@@ -4,6 +4,26 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Clock, Globe, LayoutGrid, CheckCircle, XCircle } from "lucide-react"
 
+// Define types for session and step data
+interface SessionStep {
+  id: string;
+  action: string;
+  target: string;
+  value?: string; // value is optional
+  status: "success" | "error" | "pending" | string; // Allow known statuses + string
+}
+
+interface SessionData {
+  id: string;
+  projectId: string;
+  status: string;
+  startUrl: string;
+  duration: string;
+  createdAt: string;
+  completedAt: string | null;
+  steps: SessionStep[];
+}
+
 type Props = {
   params: {
     id: string
@@ -19,25 +39,27 @@ export default async function SessionDetailPage({ params }: Props) {
     redirect("/")
   }
 
-  const { id: projectId, sessionId } = params
+  // Await params before accessing properties
+  const resolvedParams = await params;
+  const { id: projectId, sessionId } = resolvedParams;
 
   // In a real app, you would fetch this data from your database
-  const session = {
+  // TODO: Implement fetching session details from API/DB
+  console.log(`Fetching details for Project: ${projectId}, Session: ${sessionId}`);
+  // Revert to previous dummy data structure to satisfy JSX
+  const session: SessionData = {
     id: sessionId,
     projectId,
-    status: sessionId.includes("1") ? "completed" : "failed",
-    startUrl: "https://example.com",
-    duration: sessionId.includes("1") ? "2m 15s" : "0m 45s",
-    createdAt: "2023-04-05 14:30",
-    completedAt: "2023-04-05 14:32",
-    steps: [
-      { id: "step_1", action: "navigate", target: "https://example.com", status: "success" },
-      { id: "step_2", action: "click", target: ".signup-button", status: "success" },
-      { id: "step_3", action: "fill", target: "#email", value: "test@example.com", status: "success" },
-      { id: "step_4", action: "fill", target: "#password", value: "********", status: "success" },
-      { id: "step_5", action: "click", target: ".submit-button", status: sessionId.includes("1") ? "success" : "error" },
-    ]
+    status: "running", // Placeholder - fetch real status
+    startUrl: "https://example.com", // Placeholder
+    duration: "In Progress", // Placeholder
+    createdAt: new Date().toISOString(), // Placeholder
+    completedAt: null, // Placeholder
+    steps: [] // Initialize with empty array, matching SessionStep[] type
   }
+
+  // Handle case where session data couldn't be fetched (implement later)
+  // if (!session) { ... }
 
   return (
     <div className="min-h-screen bg-slate-50">
