@@ -94,7 +94,7 @@ export default function CreateSessionForm({ projectId }: CreateSessionFormProps)
               placeholder="https://example.com"
               value={startUrl}
               onChange={(e) => setStartUrl(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 text-black"
               disabled={isLoading}
               required
             />
