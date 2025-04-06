@@ -1,19 +1,20 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
 import { PrismaClient } from '@prisma/client';
+import { getOrCreateUser } from '@/app/lib/user';
 
 const prisma = new PrismaClient();
 
 export async function GET() {
   try {
-    const { userId } = await auth();
-
-    if (!userId) {
+    // Get the user from our database
+    const user = await getOrCreateUser();
+    
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const projects = await prisma.project.findMany({
-      where: { userId: userId },
+      where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
     });
 
@@ -31,13 +32,14 @@ interface CreateProjectBody {
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
-    const body: CreateProjectBody = await request.json();
-    const { name } = body;
-
-    if (!userId) {
+    const user = await getOrCreateUser();
+    
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const body: CreateProjectBody = await request.json();
+    const { name } = body;
 
     if (!name) {
       return NextResponse.json({ error: 'Project name is required' }, { status: 400 });
@@ -46,7 +48,7 @@ export async function POST(request: Request) {
     const newProject = await prisma.project.create({
       data: {
         name: name,
-        userId: userId,
+        userId: user.id,
       },
     });
 

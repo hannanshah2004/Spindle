@@ -3,10 +3,78 @@ import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Clock, CalendarDays, Play } from "lucide-react"
+import CreateSessionForm from "./CreateSessionForm";
+import { cookies } from 'next/headers';
 
 type Props = {
   params: {
     id: string
+  }
+}
+
+// Define types for API data
+interface ProjectDetails {
+  id: string;
+  name: string;
+  createdAt: string;
+  // Add other fields if returned by GET /api/v1/projects/{id}
+}
+
+interface Session {
+  id: string;
+  projectId: string;
+  status: string; // 'running', 'completed', 'failed', etc.
+  createdAt: string;
+  lastUsedAt: string;
+  // Add other fields returned by GET /api/v1/sessions
+}
+
+// Fetch specific project details
+async function getProjectDetails(projectId: string): Promise<ProjectDetails | null> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.API_BASE_URL || 'http://localhost:3000';
+    const cookieStore = cookies();
+    
+    const response = await fetch(`${baseUrl}/api/v1/projects/${projectId}`, {
+      method: 'GET',
+      headers: {
+        Cookie: cookieStore.toString()
+      },
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      if (response.status === 404) return null;
+      console.error(`Failed to fetch project ${projectId}:`, response.status, await response.text());
+      return null;
+    }
+    return (await response.json()) as ProjectDetails;
+  } catch (error) {
+    console.error(`Error fetching project ${projectId}:`, error);
+    return null;
+  }
+}
+
+// Fetch all sessions
+async function getAllSessions(): Promise<Session[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.API_BASE_URL || 'http://localhost:3000';
+    const cookieStore = cookies();
+    
+    const response = await fetch(`${baseUrl}/api/v1/sessions`, {
+      method: 'GET',
+      headers: {
+        Cookie: cookieStore.toString()
+      },
+      cache: 'no-store',
+    });
+    if (!response.ok) {
+      console.error("Failed to fetch sessions:", response.status, await response.text());
+      return [];
+    }
+    return (await response.json()) as Session[];
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    return [];
   }
 }
 
@@ -20,31 +88,37 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   const projectId = params.id
 
-  // In a real app, you would fetch this data from your database
-  const project = {
-    id: projectId,
-    name: projectId === "proj_1" ? "E-commerce Automation" : 
-          projectId === "proj_2" ? "Data Scraping" : 
-          projectId === "proj_3" ? "Form Submission" : "New Project",
-    type: "web_automation",
-    createdAt: "2023-04-01",
-    sessions: [
-      { 
-        id: "sess_1", 
-        status: "completed", 
-        startUrl: "https://example.com", 
-        duration: "2m 15s", 
-        createdAt: "2023-04-05 14:30" 
-      },
-      { 
-        id: "sess_2", 
-        status: "failed", 
-        startUrl: "https://example.com/checkout", 
-        duration: "0m 45s", 
-        createdAt: "2023-04-06 10:15" 
-      },
-    ]
+  // Fetch data in parallel
+  const [project, allSessions] = await Promise.all([
+    getProjectDetails(projectId),
+    getAllSessions(),
+  ]);
+
+  // Handle project not found or fetch error
+  if (!project) {
+    // Redirect or show a 'not found' message
+    // redirect("/dashboard/projects?error=not_found"); // Option 1: Redirect
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-xl font-semibold text-slate-700 mb-4">Project Not Found</h1>
+          <Link href="/dashboard/projects" className="text-blue-600 hover:underline">
+            Go back to Projects
+          </Link>
+        </div>
+      </div>
+    );
   }
+
+  // Filter sessions for the current project
+  const projectSessions = allSessions.filter(session => session.projectId === projectId);
+  // Sort sessions by creation date, newest first
+  projectSessions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  // Determine last activity
+  const lastActivityDate = projectSessions.length > 0 
+    ? new Date(projectSessions[0].createdAt) // Assuming sorted newest first
+    : null;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -76,9 +150,9 @@ export default async function ProjectDetailPage({ params }: Props) {
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
           <div className="p-5 border-b border-slate-100 flex justify-between items-center">
             <h3 className="font-semibold text-slate-800">{project.name}</h3>
-            <span className="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
-              {project.type.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
-            </span>
+            {/* <span className="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+              {project.type} 
+            </span> */}
           </div>
           <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-center gap-3">
@@ -98,7 +172,7 @@ export default async function ProjectDetailPage({ params }: Props) {
               </div>
               <div>
                 <p className="text-xs text-slate-500">Total Sessions</p>
-                <p className="font-medium text-slate-700">{project.sessions.length}</p>
+                <p className="font-medium text-slate-700">{projectSessions.length}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -108,81 +182,42 @@ export default async function ProjectDetailPage({ params }: Props) {
               <div>
                 <p className="text-xs text-slate-500">Last Activity</p>
                 <p className="font-medium text-slate-700">
-                  {project.sessions.length > 0 
-                    ? new Date(project.sessions[0].createdAt).toLocaleDateString() 
-                    : "No activity yet"}
+                  {lastActivityDate ? lastActivityDate.toLocaleDateString() : "No activity yet"}
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Create new session */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-          <div className="p-5 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-800">Create New Session</h3>
-          </div>
-          <div className="p-5">
-            <form className="space-y-4">
-              <div>
-                <label htmlFor="startUrl" className="block text-sm font-medium text-slate-700 mb-1">
-                  Starting URL
-                </label>
-                <input
-                  type="url"
-                  id="startUrl"
-                  name="startUrl"
-                  placeholder="https://example.com"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-              <div className="flex justify-end">
-                <Link
-                  href={`/dashboard/projects/${projectId}/sessions/new`}
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  <Play className="h-4 w-4" />
-                  Start Session
-                </Link>
-              </div>
-            </form>
-          </div>
-        </div>
+        {/* Use the Create Session Form Client Component */}
+        <CreateSessionForm projectId={projectId} />
 
-        {/* Sessions list */}
+        {/* Sessions list - Use filtered & sorted data */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-800">Session History</h3>
           </div>
 
-          {project.sessions.length > 0 ? (
+          {projectSessions.length > 0 ? (
             <div className="divide-y divide-slate-100">
-              {project.sessions.map((session) => (
+              {projectSessions.map((session: Session) => (
                 <div key={session.id} className="p-4 hover:bg-slate-50 transition-colors">
                   <div className="flex justify-between items-center mb-2">
                     <div className="flex items-center gap-2">
                       <div
-                        className={`h-2 w-2 rounded-full ${session.status === "completed" ? "bg-emerald-500" : "bg-red-500"}`}
+                        className={`h-2 w-2 rounded-full ${session.status === "completed" ? "bg-emerald-500" : session.status === 'running' ? 'bg-yellow-500' : "bg-red-500"}`}
                       ></div>
-                      <span className="font-medium text-slate-700">{session.id}</span>
+                      <span className="font-medium text-slate-700 truncate max-w-[150px] sm:max-w-[250px]">{session.id}</span>
                       <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
                         {session.status}
                       </span>
                     </div>
-                    <span className="text-xs text-slate-500">{session.createdAt}</span>
+                    <span className="text-xs text-slate-500" title={new Date(session.createdAt).toISOString()}>
+                        {new Date(session.createdAt).toLocaleString()}
+                    </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-600 truncate max-w-[200px]">{session.startUrl}</span>
-                    <span className="text-slate-500">{session.duration}</span>
-                  </div>
-                  <div className="mt-2 flex justify-end">
-                    <Link
-                      href={`/dashboard/projects/${projectId}/sessions/${session.id}`}
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      View details
-                    </Link>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-slate-500">Last used: {new Date(session.lastUsedAt).toLocaleString()}</span>
                   </div>
                 </div>
               ))}

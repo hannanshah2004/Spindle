@@ -2,7 +2,45 @@ import { UserButton } from "@clerk/nextjs"
 import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { ArrowLeft, Plus, FolderPlus, Search } from "lucide-react"
+import { ArrowLeft, FolderPlus, Search } from "lucide-react"
+import CreateProjectForm from "./CreateProjectForm";
+import { cookies } from 'next/headers'; // Import cookies
+
+// Define type for Project data fetched from API
+// TODO: Update this type if the API response changes (e.g., add session count)
+interface Project {
+  id: string;
+  name: string;
+  createdAt: string; // Assuming API returns ISO string
+  // sessions: number; // Add this when backend API supports it
+}
+
+// Function to fetch projects
+async function getProjects(): Promise<Project[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.API_BASE_URL || 'http://localhost:3000';
+    const cookieStore = cookies(); // Get cookies
+    
+    const response = await fetch(`${baseUrl}/api/v1/projects`, {
+      method: 'GET',
+      headers: {
+        // Forward cookies for authentication
+        Cookie: cookieStore.toString()
+      },
+      cache: 'no-store', 
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch projects:", response.status, await response.text());
+      return []; 
+    }
+    const data = await response.json();
+    return data as Project[]; 
+  } catch (error) {
+    console.error("Error fetching projects:", error);
+    return []; 
+  }
+}
 
 export default async function ProjectsPage() {
   const user = await currentUser()
@@ -12,12 +50,8 @@ export default async function ProjectsPage() {
     redirect("/")
   }
 
-  // Sample data for projects
-  const projects = [
-    { id: "proj_1", name: "E-commerce Automation", createdAt: "2023-04-01", sessions: 5 },
-    { id: "proj_2", name: "Data Scraping", createdAt: "2023-04-15", sessions: 3 },
-    { id: "proj_3", name: "Form Submission", createdAt: "2023-05-01", sessions: 0 },
-  ]
+  // Fetch projects from the API
+  const projects = await getProjects();
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -45,59 +79,10 @@ export default async function ProjectsPage() {
           </Link>
         </div>
 
-        {/* Project creation card */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8">
-          <div className="p-5 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-800">Create New Project</h3>
-          </div>
-          <div className="p-5">
-            <form className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <label htmlFor="projectName" className="block text-sm font-medium text-slate-700 mb-1">
-                    Project Name
-                  </label>
-                  <input
-                    type="text"
-                    id="projectName"
-                    name="projectName"
-                    placeholder="Enter project name"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="projectType" className="block text-sm font-medium text-slate-700 mb-1">
-                    Project Type
-                  </label>
-                  <select
-                    id="projectType"
-                    name="projectType"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="web_automation">Web Automation</option>
-                    <option value="data_scraping">Data Scraping</option>
-                    <option value="form_submission">Form Submission</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div className="flex justify-end">
-                <Link
-                  href="/dashboard/projects/proj_new" // This would typically be handled by a form submission
-                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                >
-                  <Plus className="h-4 w-4" />
-                  Create Project
-                </Link>
-              </div>
-            </form>
-          </div>
-        </div>
+        {/* Use the Create Project Form Client Component */}
+        <CreateProjectForm />
 
-        {/* Projects list */}
+        {/* Projects list - Uses fetched data */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-5 border-b border-slate-100 flex justify-between items-center">
             <h3 className="font-semibold text-slate-800">Your Projects</h3>
@@ -126,7 +111,7 @@ export default async function ProjectsPage() {
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-600">{project.sessions} sessions</span>
+                    <span className="text-slate-600">0 sessions</span>
                     <span className="text-blue-600 hover:text-blue-800">View details →</span>
                   </div>
                 </Link>
