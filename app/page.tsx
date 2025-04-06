@@ -51,33 +51,6 @@ export default async function Home() {
             </p>
           </div>
 
-          <SignedIn>
-            <div className="bg-emerald-50 p-5 rounded-xl border border-emerald-100 w-full mb-12 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <CheckCircle className="h-5 w-5 text-emerald-500" />
-                  <p className="font-medium text-emerald-700">You are signed in!</p>
-                </div>
-                <p className="text-slate-600 text-sm">User ID: {userId}</p>
-              </div>
-              <Link
-                href="/dashboard"
-                className="flex items-center gap-1 text-emerald-700 bg-white border border-emerald-200 px-4 py-2 rounded-lg hover:bg-emerald-50 transition-colors"
-              >
-                Go to Dashboard
-                <ArrowRight className="h-4 w-4 ml-1" />
-              </Link>
-            </div>
-          </SignedIn>
-
-          <SignedOut>
-            <div className="bg-amber-50 p-5 rounded-xl border border-amber-100 text-center w-full mb-12">
-              <p className="text-amber-700 font-medium mb-2">
-                Sign in with Google to access your personal browser automation
-              </p>
-              <p className="text-slate-600 text-sm">You&apos;ll be redirected to the dashboard after signing in</p>
-            </div>
-          </SignedOut>
 
           <div className="space-y-16">
             <section>
@@ -184,23 +157,6 @@ export default async function Home() {
         <div className="max-w-5xl mx-auto px-6 md:px-10">
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500">
             <span>© 2025 Spindle</span>
-            <span className="hidden sm:inline">•</span>
-            <a href="#" className="hover:text-slate-800 transition-colors">
-              Terms
-            </a>
-            <span className="hidden sm:inline">•</span>
-            <a href="#" className="hover:text-slate-800 transition-colors">
-              Privacy
-            </a>
-            <span className="hidden sm:inline">•</span>
-            <a
-              href="https://github.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-slate-800 transition-colors"
-            >
-              GitHub
-            </a>
           </div>
         </div>
       </footer>

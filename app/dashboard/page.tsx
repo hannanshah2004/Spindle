@@ -2,7 +2,7 @@ import { UserButton } from "@clerk/nextjs"
 import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Home, Settings, HelpCircle, BarChart3, Globe, Clock, Layers, CheckCircle2, ArrowUpRight } from "lucide-react"
+import { Home, Zap, Plus } from "lucide-react"
 
 export default async function Dashboard() {
   const user = await currentUser()
@@ -11,20 +11,6 @@ export default async function Dashboard() {
   if (!user) {
     redirect("/")
   }
-
-  // Sample data for the dashboard
-  const recentSessions = [
-    { id: "sess_123", status: "completed", url: "https://example.com", duration: "2m 15s", timestamp: "2h ago" },
-    { id: "sess_124", status: "completed", url: "https://google.com", duration: "5m 32s", timestamp: "3h ago" },
-    { id: "sess_125", status: "failed", url: "https://github.com", duration: "1m 05s", timestamp: "Yesterday" },
-  ]
-
-  const stats = [
-    { label: "Total Sessions", value: "24", icon: Layers, color: "bg-violet-100 text-violet-600" },
-    { label: "Active Now", value: "2", icon: Clock, color: "bg-emerald-100 text-emerald-600" },
-    { label: "Success Rate", value: "94%", icon: CheckCircle2, color: "bg-blue-100 text-blue-600" },
-    { label: "Websites Accessed", value: "18", icon: Globe, color: "bg-amber-100 text-amber-600" },
-  ]
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -36,6 +22,9 @@ export default async function Dashboard() {
             <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">Beta</span>
           </div>
           <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center justify-center p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors">
+              <Home className="h-5 w-5" />
+            </Link>
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
@@ -45,56 +34,48 @@ export default async function Dashboard() {
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-slate-800 mb-2">Welcome back, {user.firstName || "User"}</h2>
-          <p className="text-slate-500">Here's what's happening with your browser automation today.</p>
+          <p className="text-slate-500">Here&apos;s what&apos;s happening with your browser automation today.</p>
         </div>
 
+        {/* Stats Overview */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main content area */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Success notification */}
-            <div className="bg-emerald-50 rounded-xl border border-emerald-100 p-5">
-              <div className="flex items-start gap-3">
-                <div className="bg-white p-2 rounded-full border border-emerald-100">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                </div>
-                <div>
-                  <h3 className="font-medium text-emerald-800 mb-1">Account Connected Successfully</h3>
-                  <p className="text-emerald-600 text-sm">
-                    You've successfully signed in with Google and your account is ready to use.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent sessions */}
+            {/* Quick Actions Card */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-slate-100 flex justify-between items-center">
-                <h3 className="font-semibold text-slate-800">Recent Browser Sessions</h3>
-                <button className="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1 transition-colors">
-                  View all <ArrowUpRight className="h-3 w-3" />
-                </button>
+              <div className="p-5 border-b border-slate-100">
+                <h3 className="font-semibold text-slate-800">Get Started</h3>
               </div>
-              <div className="divide-y divide-slate-100">
-                {recentSessions.map((session, index) => (
-                  <div key={index} className="p-4 hover:bg-slate-50 transition-colors">
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`h-2 w-2 rounded-full ${session.status === "completed" ? "bg-emerald-500" : "bg-red-500"}`}
-                        ></div>
-                        <span className="font-medium text-slate-700">{session.id}</span>
-                      </div>
-                      <span className="text-xs text-slate-500">{session.timestamp}</span>
+              <div className="p-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Link 
+                    href="/dashboard/projects"
+                    className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
+                    <div className="bg-white p-2 rounded-full border border-blue-100">
+                      <Plus className="h-5 w-5 text-blue-500" />
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600 truncate max-w-[200px]">{session.url}</span>
-                      <span className="text-slate-500">{session.duration}</span>
+                    <div>
+                      <h4 className="font-medium text-blue-800">View Projects</h4>
+                      <p className="text-blue-600 text-sm">Start building your automation</p>
                     </div>
-                  </div>
-                ))}
+                  </Link>
+                  
+                  <Link 
+                    href="#"
+                    className="flex items-center gap-3 p-4 bg-purple-50 border border-purple-100 rounded-lg hover:bg-purple-100 transition-colors"
+                  >
+                    <div className="bg-white p-2 rounded-full border border-purple-100">
+                      <Zap className="h-5 w-5 text-purple-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-purple-800">View Tutorials</h4>
+                      <p className="text-purple-600 text-sm">Learn how to use Spindle</p>
+                    </div>
+                  </Link>
+                </div>
               </div>
             </div>
-
           </div>
 
           {/* Sidebar */}
@@ -130,29 +111,6 @@ export default async function Dashboard() {
               </div>
             </div>
 
-            {/* Quick actions */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-slate-100">
-                <h3 className="font-semibold text-slate-800">Quick Actions</h3>
-              </div>
-              <div className="p-2">
-                <nav className="space-y-1">
-                  {[
-                    { name: "Home", icon: Home, href: "/" },
-                    { name: "View Projects", icon: Globe, href: "/dashboard/projects" },
-                  ].map((item, index) => (
-                    <Link
-                      key={index}
-                      href={item.href}
-                      className="flex items-center gap-3 p-3 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <span>{item.name}</span>
-                    </Link>
-                  ))}
-                </nav>
-              </div>
-            </div>
           </div>
         </div>
       </main>
