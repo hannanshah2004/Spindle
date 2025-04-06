@@ -128,7 +128,7 @@ export default async function SessionDetailPage({ params }: Props) {
           <div className="flex items-center gap-4">
              {/* Show Terminate Button only if session is running */}
              {session.status === 'running' && (
-                <TerminateSessionButton sessionId={sessionId} projectId={projectId} />
+                <TerminateSessionButton sessionId={sessionId} />
              )}
             <UserButton afterSignOutUrl="/" />
           </div>

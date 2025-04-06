@@ -64,62 +64,68 @@ export async function GET(request: Request, { params }: { params: Params }) {
 }
 
 export async function DELETE(request: Request, { params }: { params: Params }) {
+  // Note: This is now more like an "Update Status to Completed/Terminated" endpoint
+  let sessionId: string | null = null;
   try {
-    // Get user from our database
     const user = await getOrCreateUser();
-    
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Await params before destructuring
     const resolvedParams = await params;
-    const { sessionId } = resolvedParams;
-
+    sessionId = resolvedParams.sessionId; // Assign sessionId here
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
     }
 
-    // 1. Fetch Session from DB (Needed to verify ownership)
+    // 1. Fetch Session from DB (Needed for ownership check and getting current status)
     const session = await prisma.session.findUnique({
       where: { id: sessionId },
-      select: { id: true, project: { select: { userId: true } } },
+      // Select necessary fields, including status
+      select: { id: true, status: true, project: { select: { userId: true } } }, 
     });
 
     if (!session) {
-      // Still try to clean up potential Stagehand instance even if no DB record exists
-      try {
-        await removeStagehand(sessionId);
-      } catch (cleanupError) {
-        // Just log, don't fail the request
-        console.error(`Failed to clean up Stagehand instance for session ${sessionId}:`, cleanupError);
-      }
+      // Try cleanup even if DB record missing
+      try { await removeStagehand(sessionId); } catch { /* ignore */ }
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
-    // 2. Verify Ownership against our database user
+    // 2. Verify Ownership 
     if (session.project.userId !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // 3. Clean up Stagehand instance if it exists
+    // 3. Clean up Stagehand instance (Close browser)
     try {
+      console.log(`[DELETE /sessions] Removing Stagehand instance for ${sessionId}`);
       await removeStagehand(sessionId);
+      console.log(`[DELETE /sessions] Stagehand instance for ${sessionId} removed.`);
     } catch (cleanupError) {
-      // Just log, don't fail the delete operation
       console.error(`Error cleaning up Stagehand instance for session ${sessionId}:`, cleanupError);
+      // Don't fail the operation, but log it. The session might be marked completed anyway.
     }
 
-    // 4. Delete Session from DB
-    await prisma.session.delete({
+    // 4. Update Session Status in DB to 'completed'
+    console.log(`[DELETE /sessions] Updating session ${sessionId} status to completed.`);
+    const updatedSession = await prisma.session.update({
       where: { id: sessionId },
+      data: {
+         status: 'completed', 
+         lastUsedAt: new Date(), // Update timestamp
+         // Optionally set completedAt here if you add that field
+      },
+      // Include actions in the response so frontend updates correctly
+      include: { actions: { orderBy: { createdAt: 'asc' } } } 
     });
+    console.log(`[DELETE /sessions] Session ${sessionId} status updated.`);
 
-    // 5. Return Success
-    return new NextResponse(null, { status: 204 }); // No content on successful delete
+    // 5. Return Success with updated session data
+    return NextResponse.json(updatedSession, { status: 200 }); 
 
   } catch (error) {
-    console.error(`Error deleting session ${params?.sessionId || 'unknown'}:`, error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error(`Error during session termination (update status) for ${sessionId || 'unknown'}:`, error);
+    // If error happened, the session status might not be updated
+    return NextResponse.json({ error: 'Internal Server Error during termination' }, { status: 500 });
   }
 } 

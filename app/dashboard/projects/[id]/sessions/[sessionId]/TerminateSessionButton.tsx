@@ -6,17 +6,15 @@ import { Trash2 } from 'lucide-react'
 
 interface TerminateSessionButtonProps {
   sessionId: string;
-  projectId: string;
 }
 
-export default function TerminateSessionButton({ sessionId, projectId }: TerminateSessionButtonProps) {
+export default function TerminateSessionButton({ sessionId }: TerminateSessionButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleTerminate = async () => {
-    // Optional: Add a confirmation dialog
-    if (!window.confirm('Are you sure you want to terminate this session? The browser instance will be closed.')) {
+    if (!window.confirm('Are you sure you want to terminate this session? The browser instance will be closed, but the session log will remain.')) {
         return;
     }
 
@@ -25,28 +23,31 @@ export default function TerminateSessionButton({ sessionId, projectId }: Termina
 
     try {
       const baseUrl = window.location.origin;
-      console.log(`[TerminateButton] Terminating session: ${sessionId}`);
+      console.log(`[TerminateButton] Terminating session (updating status): ${sessionId}`);
       
       const response = await fetch(`${baseUrl}/api/v1/sessions/${sessionId}`, {
         method: 'DELETE',
       });
 
-      // DELETE returns 204 No Content on success
-      if (!response.ok && response.status !== 204) {
+      // Expect 200 OK with updated session data now
+      if (!response.ok) { // Check for general non-OK status
         let errorMsg = 'Failed to terminate session';
         try {
             const result = await response.json();
-            errorMsg = result.error || errorMsg;
+            errorMsg = result.error || result.message || errorMsg;
         } catch { /* Ignore if response body is not JSON */ }
         console.error(`[TerminateButton] Termination failed for session ${sessionId}: Status ${response.status}`);
         throw new Error(errorMsg);
       }
       
-      console.log(`[TerminateButton] Session ${sessionId} terminated successfully.`);
-      // Redirect back to the project page after successful termination
-      router.push(`/dashboard/projects/${projectId}`);
-      // Optionally refresh project page data if needed after redirect
-      // router.refresh(); // Use this carefully, might not be needed if redirecting
+      const updatedSessionData = await response.json(); // Get the updated session data
+      console.log(`[TerminateButton] Session ${sessionId} terminated (status updated to ${updatedSessionData?.status}).`);
+      
+      // Refresh the current page to show the updated status ('completed')
+      // This will re-fetch data in the server component
+      router.refresh(); 
+      
+      // Optionally, could update local state immediately, but refresh is simpler
 
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unknown error occurred';
