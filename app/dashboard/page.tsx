@@ -62,7 +62,7 @@ export default async function Dashboard() {
                   </Link>
                   
                   <Link 
-                    href="#"
+                    href="/dashboard/tutorials"
                     className="flex items-center gap-3 p-4 bg-purple-50 border border-purple-100 rounded-lg hover:bg-purple-100 transition-colors"
                   >
                     <div className="bg-white p-2 rounded-full border border-purple-100">
