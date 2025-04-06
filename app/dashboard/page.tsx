@@ -36,12 +36,6 @@ export default async function Dashboard() {
             <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">Beta</span>
           </div>
           <div className="flex items-center gap-4">
-            <button className="text-slate-500 hover:text-slate-700 transition-colors">
-              <HelpCircle className="h-5 w-5" />
-            </button>
-            <button className="text-slate-500 hover:text-slate-700 transition-colors">
-              <Settings className="h-5 w-5" />
-            </button>
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
