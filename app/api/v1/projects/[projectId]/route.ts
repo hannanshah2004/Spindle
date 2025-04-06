@@ -58,9 +58,18 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
 
+    // 1. Check project exists and belongs to user
     const project = await prisma.project.findUnique({
       where: { id: projectId },
-      select: { userId: true },
+      select: { 
+        userId: true,
+        sessions: {
+          select: { 
+            id: true,
+            status: true
+          }
+        }
+      },
     });
 
     if (!project) {
@@ -71,9 +80,32 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // 2. Check for and clean up any running sessions
+    const runningSessions = project.sessions.filter(s => s.status === 'running');
+    if (runningSessions.length > 0) {
+      console.log(`[DELETE /projects] Found ${runningSessions.length} running sessions to clean up`);
+      
+      // Import needed only when there are running sessions
+      const { removeStagehand } = await import('@/app/lib/stagehandManager');
+      
+      // Clean up each running session
+      for (const session of runningSessions) {
+        try {
+          console.log(`[DELETE /projects] Cleaning up running session: ${session.id}`);
+          await removeStagehand(session.id);
+        } catch (err) {
+          // Log but continue - we want to delete the project anyway
+          console.error(`[DELETE /projects] Error cleaning up session ${session.id}:`, err);
+        }
+      }
+    }
+
+    // 3. Delete the project (and cascading delete all sessions/actions)
+    console.log(`[DELETE /projects] Deleting project ${projectId}`);
     await prisma.project.delete({
       where: { id: projectId },
     });
+    console.log(`[DELETE /projects] Project ${projectId} deleted successfully`);
 
     return new NextResponse(null, { status: 204 });
 

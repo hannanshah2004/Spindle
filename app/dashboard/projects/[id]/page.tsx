@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Clock, CalendarDays, Play } from "lucide-react"
 import CreateSessionForm from "./CreateSessionForm";
+import DeleteProjectButton from "../DeleteProjectButton";
 import { cookies } from 'next/headers';
 import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 
@@ -147,6 +148,11 @@ export default async function ProjectDetailPage({ params }: Props) {
             <ArrowLeft className="mr-1 h-4 w-4" />
             Back to Projects
           </Link>
+          <DeleteProjectButton 
+            projectId={projectId} 
+            projectName={project.name} 
+            className="text-sm"
+          />
         </div>
 
         {/* Project info */}
