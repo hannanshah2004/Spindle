@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Spindle",
   description: "The platform for running headless browsers with powerful automation capabilities",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
