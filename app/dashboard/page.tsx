@@ -48,26 +48,6 @@ export default async function Dashboard() {
           <p className="text-slate-500">Here's what's happening with your browser automation today.</p>
         </div>
 
-        {/* Stats overview */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {stats.map((stat, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-slate-500 text-sm mb-1">{stat.label}</p>
-                  <p className="text-2xl font-bold text-slate-800">{stat.value}</p>
-                </div>
-                <div className={`p-2 rounded-lg ${stat.color}`}>
-                  <stat.icon className="h-5 w-5" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main content area */}
           <div className="lg:col-span-2 space-y-8">
@@ -159,7 +139,7 @@ export default async function Dashboard() {
                 <nav className="space-y-1">
                   {[
                     { name: "Home", icon: Home, href: "/" },
-                    { name: "Create New Session", icon: Globe, href: "#" },
+                    { name: "Create New Session", icon: Globe, href: "/dashboard/create-session" },
                   ].map((item, index) => (
                     <Link
                       key={index}
