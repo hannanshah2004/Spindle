@@ -231,7 +231,6 @@ export default async function ProjectDetailPage({ params }: Props) {
                   </div>
                   <div className="flex justify-between text-sm mt-1">
                     <span className="text-slate-500">Last used: {new Date(session.lastUsedAt).toLocaleString()}</span>
-                    <span className="text-blue-600 text-xs group-hover:underline">View Details →</span>
                   </div>
                 </Link>
               ))}
