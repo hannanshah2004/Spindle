@@ -3,6 +3,8 @@ import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ArrowLeft, Clock, Globe, LayoutGrid, CheckCircle, XCircle } from "lucide-react"
+import { cookies } from 'next/headers'; // Import cookies for API fetch
+import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 
 // Define types for session and step data
 interface SessionStep {
@@ -31,6 +33,45 @@ type Props = {
   }
 }
 
+// Function to fetch session details from the API
+async function getSessionDetails(sessionId: string): Promise<SessionData | null> {
+  try {
+    // Determine base URL for server-side fetch
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.API_BASE_URL || 'http://localhost:3000';
+    const cookieStore: ReadonlyRequestCookies = await cookies();
+    const cookieHeader = cookieStore.getAll().map((c: { name: string; value: string }) => `${c.name}=${c.value}`).join('; ');
+
+    console.log(`[SessionDetailPage] Fetching ${baseUrl}/api/v1/sessions/${sessionId}`);
+    const response = await fetch(`${baseUrl}/api/v1/sessions/${sessionId}`, {
+      method: 'GET',
+      headers: {
+        Cookie: cookieHeader,
+      },
+      cache: 'no-store', // Ensure fresh data is fetched
+    });
+
+    if (!response.ok) {
+      console.error(`[SessionDetailPage] Failed to fetch session ${sessionId}:`, response.status, await response.text());
+      return null;
+    }
+
+    const data = await response.json();
+    console.log(`[SessionDetailPage] Fetched session data for ${sessionId}:`, data);
+    
+    // Add projectId and potentially map/transform fields if API response differs from SessionData
+    // Assuming API returns fields matching SessionData for now, except projectId and steps
+    return {
+      ...data,
+      projectId: data.projectId, // Make sure projectId is included if needed by UI (it's already in params)
+      steps: data.steps || [], // Ensure steps array exists, even if empty
+    } as SessionData;
+
+  } catch (error) {
+    console.error(`[SessionDetailPage] Error fetching session ${sessionId}:`, error);
+    return null;
+  }
+}
+
 export default async function SessionDetailPage({ params }: Props) {
   const user = await currentUser()
 
@@ -43,23 +84,32 @@ export default async function SessionDetailPage({ params }: Props) {
   const resolvedParams = await params;
   const { id: projectId, sessionId } = resolvedParams;
 
-  // In a real app, you would fetch this data from your database
-  // TODO: Implement fetching session details from API/DB
-  console.log(`Fetching details for Project: ${projectId}, Session: ${sessionId}`);
-  // Revert to previous dummy data structure to satisfy JSX
-  const session: SessionData = {
-    id: sessionId,
-    projectId,
-    status: "running", // Placeholder - fetch real status
-    startUrl: "https://example.com", // Placeholder
-    duration: "In Progress", // Placeholder
-    createdAt: new Date().toISOString(), // Placeholder
-    completedAt: null, // Placeholder
-    steps: [] // Initialize with empty array, matching SessionStep[] type
-  }
+  console.log(`[SessionDetailPage] Rendering page for Project: ${projectId}, Session: ${sessionId}`);
 
-  // Handle case where session data couldn't be fetched (implement later)
-  // if (!session) { ... }
+  // Fetch session data from the API
+  const session = await getSessionDetails(sessionId);
+
+  // Handle session not found or fetch error
+  if (!session) {
+    // TODO: Show a proper error message or redirect
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-xl font-semibold text-slate-700 mb-4">Session Not Found or Error Fetching</h1>
+          <Link href={`/dashboard/projects/${projectId}`} className="text-blue-600 hover:underline">
+            Go back to Project
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  
+  // Now 'session' contains the actual data fetched from the API
+  console.log(`[SessionDetailPage] Rendering with session status: ${session.status}`);
+
+  // TODO: Implement fetching/displaying actual session steps/logs
+  // For now, the steps array in the fetched session data will likely be empty 
+  // as we don't store individual steps in the backend yet.
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -69,9 +119,11 @@ export default async function SessionDetailPage({ params }: Props) {
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold text-slate-800">Session Details</h1>
             <span className={`text-xs px-2 py-1 rounded-full ${
-              session.status === "completed" 
-                ? "bg-emerald-100 text-emerald-600" 
-                : "bg-red-100 text-red-600"
+              session.status === "completed" ? "bg-emerald-100 text-emerald-600" : 
+              session.status === "running" ? "bg-yellow-100 text-yellow-600" : 
+              session.status === "failed" ? "bg-red-100 text-red-600" : 
+              session.status === "created" ? "bg-blue-100 text-blue-600" : 
+              "bg-slate-100 text-slate-600"
             }`}>
               {session.status}
             </span>
@@ -128,20 +180,26 @@ export default async function SessionDetailPage({ params }: Props) {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className={`${
-                session.status === "completed" 
-                  ? "bg-emerald-100" 
-                  : "bg-red-100"
+              <div className={`${ 
+                session.status === "completed" ? "bg-emerald-100" : 
+                session.status === "running" ? "bg-yellow-100" :
+                session.status === "created" ? "bg-blue-100" :
+                "bg-red-100"
               } p-2 rounded-full`}>
                 {session.status === "completed" 
                   ? <CheckCircle className="h-5 w-5 text-emerald-600" />
+                  : session.status === "running" || session.status === "created"
+                  ? <Clock className="h-5 w-5 text-yellow-600" /> 
                   : <XCircle className="h-5 w-5 text-red-600" />
                 }
               </div>
               <div>
                 <p className="text-xs text-slate-500">Completion</p>
                 <p className="font-medium text-slate-700">
-                  {session.status === "completed" ? "Successful" : "Failed"}
+                  {session.status === "completed" ? "Successful" : 
+                   session.status === "running" ? "In Progress" : 
+                   session.status === "created" ? "Initializing" :
+                   "Failed" }
                 </p>
               </div>
             </div>

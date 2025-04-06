@@ -79,10 +79,18 @@ export async function POST(request: Request, { params }: { params: Params }) {
     // Action 2: Perform NLP instruction if provided (still use actOnSession for LLM)
     if (nlpInstruction && nlpInstruction.trim() !== '') {
         await setTimeout(500); // Keep delay before LLM action
-      console.log(`Performing NLP instruction for session ${sessionId}: "${nlpInstruction}"`);
-      // We need actOnSession which uses the manager, let's ensure it uses the same instance
-      await actOnSession(sessionId, nlpInstruction); 
-      console.log(`NLP instruction complete for session ${sessionId}`);
+        console.log(`Performing NLP instruction for session ${sessionId}: "${nlpInstruction}"`);
+        
+        // Check the result of actOnSession
+        const actResult = await actOnSession(sessionId, nlpInstruction); 
+        console.log(`NLP instruction actResult:`, JSON.stringify(actResult, null, 2)); // Log the full result
+        
+        if (!actResult || !actResult.success) {
+           // Throw an error if actResult indicates failure
+           throw new Error(`NLP action failed: ${actResult?.message || 'No message provided'}`);
+        }
+        
+        console.log(`NLP instruction completed successfully for session ${sessionId}`);
     }
 
     // Update last used time after actions

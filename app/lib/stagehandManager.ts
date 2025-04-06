@@ -1,4 +1,4 @@
-import { Stagehand, type AvailableModel } from '@browserbasehq/stagehand';
+import { Stagehand, type AvailableModel, type ActResult } from '@browserbasehq/stagehand';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 
@@ -109,11 +109,41 @@ export async function removeStagehand(sessionId: string): Promise<void> {
  * Perform an action on a session
  * @param sessionId The ID of the session 
  * @param action The action to perform
- * @returns The result of the action
+ * @returns An object indicating success or failure, and a message.
  */
-export async function actOnSession(sessionId: string, action: string) {
-  const stagehand = await getStagehand(sessionId);
-  return await stagehand.page.act({ action });
+export async function actOnSession(sessionId: string, action: string): Promise<{ success: boolean; message: string; result?: ActResult | null }> {
+  try {
+    console.log(`[StagehandManager] Getting Stagehand instance for session: ${sessionId}`);
+    const stagehand = await getStagehand(sessionId);
+    
+    console.log(`[StagehandManager] Calling page.act for session ${sessionId} with action: "${action}"`);
+    const result: ActResult = await stagehand.page.act({ action });
+    
+    console.log(`[StagehandManager] page.act completed for session ${sessionId}. Result:`, JSON.stringify(result, null, 2));
+    
+    return { 
+      success: result?.success ?? false, 
+      message: result?.message || 'Action completed, but no message returned.',
+      result: result
+    };
+
+  } catch (error) {
+    console.error(`[StagehandManager] Error during actOnSession for session ${sessionId}, action "${action}":`, error);
+    let errorMessage = 'Unknown error during action';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      console.error(`[StagehandManager] Act Error Name: ${error.name}`);
+      console.error(`[StagehandManager] Act Error Message: ${errorMessage}`);
+      if (error.stack) {
+        console.error(`[StagehandManager] Act Error Stack: ${error.stack}`);
+      }
+    }
+    return { 
+      success: false, 
+      message: `Action failed: ${errorMessage}`, 
+      result: null
+    };
+  }
 }
 
 /**
