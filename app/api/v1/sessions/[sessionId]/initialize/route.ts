@@ -1,17 +1,9 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getOrCreateUser } from '@/app/lib/user';
-import { initializeStagehand, actOnSession } from '@/app/lib/stagehandManager';
-import { z } from 'zod';
-import { setTimeout } from 'timers/promises'; // Import setTimeout for async delay
+import { initializeStagehand, removeStagehand } from '@/app/lib/stagehandManager';
 
 const prisma = new PrismaClient();
-
-// Validate the initialization request body
-const initializeSchema = z.object({
-  startUrl: z.string().url("Valid Start URL is required").min(1),
-  nlpInstruction: z.string().optional(), // Instruction is optional
-});
 
 interface Params {
   sessionId: string;
@@ -19,7 +11,7 @@ interface Params {
 
 export async function POST(request: Request, { params }: { params: Params }) {
   let stagehandInitialized = false;
-  let sessionId: string | null = null; // Keep track for potential cleanup
+  let sessionId: string | null = null;
 
   try {
     // 1. Authenticate User
@@ -35,19 +27,7 @@ export async function POST(request: Request, { params }: { params: Params }) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
     }
 
-    // 3. Validate request body
-    let requestData;
-    try {
-      const body = await request.json();
-      requestData = initializeSchema.parse(body);
-    } catch (error) {
-      return NextResponse.json({ 
-        error: 'Invalid request body',
-        details: error instanceof z.ZodError ? error.format() : String(error) 
-      }, { status: 400 });
-    }
-
-    // 4. Verify Session Exists and Belongs to User
+    // 3. Fetch Session to get startUrl and verify ownership/status
     const session = await prisma.session.findUnique({
       where: { id: sessionId },
       include: { project: { select: { userId: true } } },
@@ -60,66 +40,58 @@ export async function POST(request: Request, { params }: { params: Params }) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     if (session.status !== 'created') {
-      // Avoid re-initializing an already running/failed/completed session
       return NextResponse.json({ error: `Session already initialized with status: ${session.status}` }, { status: 409 }); 
     }
+    
+    const startUrl = session.startUrl || 'https://example.com'; // Get startUrl from session
 
-    // 5. Initialize Stagehand
+    // 4. Initialize Stagehand (launches browser, sets status to 'running' or 'failed')
     const stagehand = await initializeStagehand(sessionId); 
     stagehandInitialized = true; 
 
-    // 6. Perform Initial Actions
-    const { startUrl, nlpInstruction } = requestData;
-
-    // Action 1: Use direct Playwright goto for initial navigation
-    console.log(`Navigating session ${sessionId} directly to ${startUrl}`);
-    await stagehand.page.goto(startUrl, { waitUntil: 'domcontentloaded' }); // Use Playwright's goto
-    console.log(`Direct navigation complete for session ${sessionId}`);
-
-    // Action 2: Perform NLP instruction if provided (still use actOnSession for LLM)
-    if (nlpInstruction && nlpInstruction.trim() !== '') {
-        await setTimeout(500); // Keep delay before LLM action
-        console.log(`Performing NLP instruction for session ${sessionId}: "${nlpInstruction}"`);
-        
-        // Check the result of actOnSession
-        const actResult = await actOnSession(sessionId, nlpInstruction); 
-        console.log(`NLP instruction actResult:`, JSON.stringify(actResult, null, 2)); // Log the full result
-        
-        if (!actResult || !actResult.success) {
-           // Throw an error if actResult indicates failure
-           throw new Error(`NLP action failed: ${actResult?.message || 'No message provided'}`);
-        }
-        
-        console.log(`NLP instruction completed successfully for session ${sessionId}`);
+    // 5. Perform Initial Navigation using direct goto
+    console.log(`[Initialize] Navigating session ${sessionId} directly to ${startUrl}`);
+    try {
+      await stagehand.page.goto(startUrl, { waitUntil: 'domcontentloaded' }); 
+      console.log(`[Initialize] Direct navigation complete for session ${sessionId}`);
+    } catch(navError) {
+        console.error(`[Initialize] Initial navigation failed for session ${sessionId}:`, navError);
+        // If navigation fails, we should probably mark the session as failed and cleanup
+        await prisma.session.update({ where: { id: sessionId }, data: { status: 'failed' }});
+        // Call removeStagehand for cleanup
+        await removeStagehand(sessionId);
+        throw new Error(`Initial navigation to ${startUrl} failed.`); // Rethrow to be caught by main handler
     }
 
-    // Update last used time after actions
+    // Update last used time
     await prisma.session.update({
         where: { id: sessionId },
         data: { lastUsedAt: new Date() },
       });
 
-    // 7. Return Success
-    return NextResponse.json({ success: true, message: 'Session initialized and initial actions performed.' });
+    // 6. Return Success (only indicates initialization + navigation started)
+    console.log(`[Initialize] Session ${sessionId} initialized and navigated successfully.`);
+    return NextResponse.json({ success: true, message: 'Session initialized and navigated.' });
 
   } catch (error) {
-    console.error(`Error during session initialization/action for session ${sessionId}:`, error);
-    
-    // If Stagehand was initialized but subsequent actions failed, status might be 'running'
-    // We should update it to 'failed' to reflect the error.
+    console.error(`[Initialize] Caught error during session ${sessionId} initialization/navigation:`, error);
+    // Update status to 'failed' if initialization started but something went wrong
     if (sessionId && stagehandInitialized) {
+        console.log(`[Initialize] Attempting to mark session ${sessionId} as failed due to error.`);
         try {
-          await prisma.session.update({
-            where: { id: sessionId },
-            data: { status: 'failed' }
-          });
+          await prisma.session.update({ where: { id: sessionId }, data: { status: 'failed' }});
+          console.log(`[Initialize] Session ${sessionId} marked as failed.`);
+          // Also attempt cleanup if error happened after initialization but NOT during navigation (already handled)
+          if (!(error instanceof Error && error.message.includes('Initial navigation'))) {
+             await removeStagehand(sessionId);
+          }
         } catch (dbError) {
-          console.error(`Failed to update session status to 'failed' for ${sessionId} after action error:`, dbError);
+          console.error(`[Initialize] Failed to update session status/cleanup for ${sessionId} after error:`, dbError);
         }
+        // Note: Stagehand instance cleanup might happen here or be handled by a separate process
     }
-    // Note: If initializeStagehand itself failed, it already sets status to 'failed'.
     
     const message = error instanceof Error ? error.message : 'An unexpected error occurred';
-    return NextResponse.json({ error: 'Session initialization or action failed', details: message }, { status: 500 });
+    return NextResponse.json({ error: 'Session initialization or navigation failed', details: message }, { status: 500 });
   }
 } 

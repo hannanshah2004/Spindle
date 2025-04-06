@@ -5,25 +5,30 @@ import Link from "next/link"
 import { ArrowLeft, Clock, Globe, LayoutGrid, CheckCircle, XCircle } from "lucide-react"
 import { cookies } from 'next/headers'; // Import cookies for API fetch
 import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
+// Uncomment AddActionForm import
+import AddActionForm from "./AddActionForm";
 
 // Define types for session and step data
-interface SessionStep {
+// Renamed from SessionStep to avoid confusion with actual steps vs recorded actions
+interface SessionActionData {
   id: string;
-  action: string;
-  target: string;
-  value?: string; // value is optional
-  status: "success" | "error" | "pending" | string; // Allow known statuses + string
+  actionType: string; // e.g., 'navigate', 'nlp'
+  details: string | null;
+  status: string; // 'success' or 'failed'
+  message: string | null;
+  createdAt: string; // Assuming ISO string from DB
 }
 
 interface SessionData {
   id: string;
   projectId: string;
   status: string;
-  startUrl: string;
-  duration: string;
-  createdAt: string;
-  completedAt: string | null;
-  steps: SessionStep[];
+  startUrl: string | null; // Made nullable to match schema
+  // Removed duration - we calculate it or it's not stored
+  createdAt: string; // Assuming ISO string
+  completedAt: string | null; // Assuming ISO string or null
+  lastUsedAt: string | null; // Assuming ISO string or null
+  actions: SessionActionData[]; // Array of actions performed
 }
 
 type Props = {
@@ -33,21 +38,20 @@ type Props = {
   }
 }
 
-// Function to fetch session details from the API
+// Updated function to fetch session details including actions
 async function getSessionDetails(sessionId: string): Promise<SessionData | null> {
   try {
-    // Determine base URL for server-side fetch
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.API_BASE_URL || 'http://localhost:3000';
     const cookieStore: ReadonlyRequestCookies = await cookies();
     const cookieHeader = cookieStore.getAll().map((c: { name: string; value: string }) => `${c.name}=${c.value}`).join('; ');
 
-    console.log(`[SessionDetailPage] Fetching ${baseUrl}/api/v1/sessions/${sessionId}`);
+    console.log(`[SessionDetailPage] Fetching ${baseUrl}/api/v1/sessions/${sessionId} (including actions)`);
     const response = await fetch(`${baseUrl}/api/v1/sessions/${sessionId}`, {
       method: 'GET',
       headers: {
         Cookie: cookieHeader,
       },
-      cache: 'no-store', // Ensure fresh data is fetched
+      cache: 'no-store', 
     });
 
     if (!response.ok) {
@@ -56,15 +60,11 @@ async function getSessionDetails(sessionId: string): Promise<SessionData | null>
     }
 
     const data = await response.json();
-    console.log(`[SessionDetailPage] Fetched session data for ${sessionId}:`, data);
+    console.log(`[SessionDetailPage] Fetched session data for ${sessionId}:`, JSON.stringify(data, null, 2));
     
-    // Add projectId and potentially map/transform fields if API response differs from SessionData
-    // Assuming API returns fields matching SessionData for now, except projectId and steps
-    return {
-      ...data,
-      projectId: data.projectId, // Make sure projectId is included if needed by UI (it's already in params)
-      steps: data.steps || [], // Ensure steps array exists, even if empty
-    } as SessionData;
+    // Ensure the fetched data matches the SessionData structure
+    // The API should now return the actions array directly
+    return data as SessionData; // Cast directly assuming API matches SessionData
 
   } catch (error) {
     console.error(`[SessionDetailPage] Error fetching session ${sessionId}:`, error);
@@ -107,10 +107,6 @@ export default async function SessionDetailPage({ params }: Props) {
   // Now 'session' contains the actual data fetched from the API
   console.log(`[SessionDetailPage] Rendering with session status: ${session.status}`);
 
-  // TODO: Implement fetching/displaying actual session steps/logs
-  // For now, the steps array in the fetched session data will likely be empty 
-  // as we don't store individual steps in the backend yet.
-
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -151,23 +147,14 @@ export default async function SessionDetailPage({ params }: Props) {
           <div className="p-5 border-b border-slate-100">
             <h3 className="font-semibold text-slate-800">Session Overview</h3>
           </div>
-          <div className="p-5 grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="p-5 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="flex items-center gap-3">
               <div className="bg-blue-100 p-2 rounded-full">
                 <Globe className="h-5 w-5 text-blue-600" />
               </div>
               <div>
                 <p className="text-xs text-slate-500">Start URL</p>
-                <p className="font-medium text-slate-700 truncate max-w-[150px]">{session.startUrl}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="bg-violet-100 p-2 rounded-full">
-                <Clock className="h-5 w-5 text-violet-600" />
-              </div>
-              <div>
-                <p className="text-xs text-slate-500">Duration</p>
-                <p className="font-medium text-slate-700">{session.duration}</p>
+                <p className="font-medium text-slate-700 truncate max-w-[150px]">{session.startUrl ?? 'N/A'}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -175,8 +162,8 @@ export default async function SessionDetailPage({ params }: Props) {
                 <LayoutGrid className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-xs text-slate-500">Steps</p>
-                <p className="font-medium text-slate-700">{session.steps.length}</p>
+                <p className="text-xs text-slate-500">Actions Executed</p>
+                <p className="font-medium text-slate-700">{session.actions.length}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -206,50 +193,74 @@ export default async function SessionDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Session steps */}
+        {/* Add Action Form Component - Use the actual component */}
+        {/* Only show the form if the session is running */}
+        {session.status === 'running' && (
+           <AddActionForm sessionId={sessionId} />
+        )}
+        {session.status !== 'running' && (
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mb-8 p-5 text-center">
+               <p className="text-sm text-slate-500">Cannot perform actions on a session that is not running (Status: {session.status}).</p>
+            </div>
+        )}
+
+        {/* Session Actions List */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-5 border-b border-slate-100">
-            <h3 className="font-semibold text-slate-800">Session Steps</h3>
+            <h3 className="font-semibold text-slate-800">Session Actions</h3>
           </div>
-          <div className="divide-y divide-slate-100">
-            {session.steps.map((step, index) => (
-              <div key={step.id} className="p-4 hover:bg-slate-50 transition-colors">
-                <div className="flex items-start gap-3">
-                  <div className={`mt-1 h-5 w-5 rounded-full flex items-center justify-center ${
-                    step.status === "success" 
-                      ? "bg-emerald-100 text-emerald-600" 
-                      : "bg-red-100 text-red-600"
-                  }`}>
-                    {index + 1}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="font-medium text-slate-800 capitalize">{step.action}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        step.status === "success" 
-                          ? "bg-emerald-100 text-emerald-600" 
-                          : "bg-red-100 text-red-600"
+          {session.actions.length > 0 ? (
+             <div className="divide-y divide-slate-100">
+                {session.actions.map((action: SessionActionData, index: number) => (
+                  <div key={action.id} className="p-4 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-start gap-3">
+                      <div className={`mt-1 h-5 w-5 rounded-full flex items-center justify-center text-xs ${ 
+                        action.status === "success" ? "bg-emerald-100 text-emerald-600" : 
+                        /* Default failed */ "bg-red-100 text-red-600"
                       }`}>
-                        {step.status}
-                      </span>
-                    </div>
-                    <div className="text-sm text-slate-600">
-                      <span className="font-mono bg-slate-50 px-1 py-0.5 rounded text-xs">
-                        {step.target}
-                      </span>
-                      {step.value && (
-                        <span className="ml-2">
-                          with value: <span className="font-mono bg-slate-50 px-1 py-0.5 rounded text-xs">
-                            {step.value}
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-medium text-slate-800 capitalize">
+                            {action.actionType === 'nlp' ? 'Instruction' : action.actionType}
                           </span>
-                        </span>
-                      )}
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${ 
+                            action.status === "success" ? "bg-emerald-100 text-emerald-600" : 
+                            "bg-red-100 text-red-600"
+                          }`}>
+                            {action.status}
+                          </span>
+                        </div>
+                        {action.details && (
+                            <p className="text-sm text-slate-600 font-mono bg-slate-50 px-2 py-1 rounded my-1 break-words">
+                              {action.details}
+                            </p>
+                        )}
+                        {action.message && (
+                            <p className="text-xs text-slate-500 mt-1">
+                              {action.message}
+                            </p>
+                        )}
+                        <p className="text-xs text-slate-400 mt-1">
+                            {new Date(action.createdAt).toLocaleString()}
+                        </p>
+                      </div>
                     </div>
                   </div>
+                ))}
+            </div>
+          ) : (
+             <div className="py-12 flex flex-col items-center justify-center text-center">
+                <div className="bg-slate-100 p-3 rounded-full mb-4">
+                  <LayoutGrid className="h-6 w-6 text-slate-500" />
                 </div>
+                <h3 className="text-slate-800 font-medium mb-1">No actions recorded yet</h3>
+                <p className="text-slate-500 text-sm max-w-sm mb-4">
+                  Perform actions using the form above (to be added).
+                </p>
               </div>
-            ))}
-          </div>
+          )}
         </div>
       </main>
     </div>

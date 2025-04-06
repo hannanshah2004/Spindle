@@ -32,10 +32,15 @@ export async function GET(request: Request, { params }: { params: Params }) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
     }
 
-    // 1. Fetch Session from DB
+    // 1. Fetch Session from DB, including related actions
     const session = await prisma.session.findUnique({
       where: { id: sessionId },
-      include: { project: { select: { userId: true } } },
+      include: { 
+        project: { select: { userId: true } }, // Still need project for ownership check
+        actions: { // Include the actions
+            orderBy: { createdAt: 'asc' } // Order them chronologically
+        } 
+      },
     });
 
     if (!session) {
@@ -47,10 +52,10 @@ export async function GET(request: Request, { params }: { params: Params }) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // 3. Return Session Details (excluding project info)
+    // 3. Return Session Details (excluding project info, but including actions)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { project, ...sessionDetails } = session;
-    return NextResponse.json(sessionDetails);
+    const { project, ...sessionDetails } = session; 
+    return NextResponse.json(sessionDetails); // sessionDetails now includes the 'actions' array
 
   } catch (error) {
     console.error(`Error fetching session ${params.sessionId}:`, error);

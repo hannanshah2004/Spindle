@@ -28,11 +28,10 @@ const ALLOWED_MODELS: AvailableModel[] = [
 // Use a single PrismaClient instance
 const prisma = new PrismaClient();
 
+// Simplified Request Body
 interface RequestBody {
   projectId: string;
-  startUrl?: string;
-  nlpInstruction?: string; // Add NLP instruction field
-  // Add other necessary session creation parameters here (e.g., browser type, contextId?)
+  startUrl?: string; 
 }
 
 export async function GET() {
@@ -77,62 +76,50 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    // Get user from our database
     const user = await getOrCreateUser();
-    
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     const body: RequestBody = await request.json();
-    const { projectId, startUrl, nlpInstruction } = body; // Destructure nlpInstruction
+    // Only expect projectId and startUrl now
+    const { projectId, startUrl } = body; 
 
     if (!projectId) {
       return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
     }
 
-    // 1. Validate Project ID and ownership
+    // Validate Project ID and ownership (same as before)
     const project = await prisma.project.findUnique({
       where: { id: projectId },
     });
-
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
-    
-    // Check against our database user ID
     if (project.userId !== user.id) {
       return NextResponse.json({ error: 'Forbidden - Project does not belong to user' }, { status: 403 });
     }
 
-    // 2. Create a session ID and record in the database first
+    // Create session ID
     const sessionId = uuidv4();
     
-    // Create Session record with initial status
+    // Create Session record with 'created' status
+    // No nlpInstruction field anymore
     const newSession = await prisma.session.create({
       data: {
         id: sessionId,
-        status: 'created', // Initial status before Stagehand initialization
+        status: 'created', // Start with 'created' status
         projectId: projectId,
-        lastUsedAt: new Date(),
-        startUrl: startUrl || 'https://example.com', // Use provided URL or default
-        nlpInstruction: nlpInstruction, // Store the instruction
+        lastUsedAt: new Date(), // Set initial timestamp
+        startUrl: startUrl || 'https://example.com', 
       },
     });
 
-    // 3. Return session details first to keep API responsive
-    // Any Stagehand initialization will happen separately when session is accessed
+    // Return the created session details (including ID)
     return NextResponse.json(newSession, { status: 201 });
 
-    /* NOTE: For a production app, we would:
-     * 1. Create the session record (as we do now)
-     * 2. Return the response immediately
-     * 3. Use a background job or separate service to initialize Stagehand 
-     * 4. Update the session status when initialization is complete
-     */
-
   } catch (error) {
-    console.error("Error creating session:", error);
+    console.error("Error creating session record:", error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 } 
