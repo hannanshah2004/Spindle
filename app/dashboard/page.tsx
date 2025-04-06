@@ -139,7 +139,7 @@ export default async function Dashboard() {
                 <nav className="space-y-1">
                   {[
                     { name: "Home", icon: Home, href: "/" },
-                    { name: "Create New Session", icon: Globe, href: "/dashboard/create-session" },
+                    { name: "View Projects", icon: Globe, href: "/dashboard/projects" },
                   ].map((item, index) => (
                     <Link
                       key={index}
