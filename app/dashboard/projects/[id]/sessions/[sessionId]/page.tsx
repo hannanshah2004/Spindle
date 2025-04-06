@@ -7,6 +7,7 @@ import { cookies } from 'next/headers'; // Import cookies for API fetch
 import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 // Uncomment AddActionForm import
 import AddActionForm from "./AddActionForm";
+import TerminateSessionButton from "./TerminateSessionButton"; // Import the terminate button
 
 // Define types for session and step data
 // Renamed from SessionStep to avoid confusion with actual steps vs recorded actions
@@ -125,6 +126,10 @@ export default async function SessionDetailPage({ params }: Props) {
             </span>
           </div>
           <div className="flex items-center gap-4">
+             {/* Show Terminate Button only if session is running */}
+             {session.status === 'running' && (
+                <TerminateSessionButton sessionId={sessionId} projectId={projectId} />
+             )}
             <UserButton afterSignOutUrl="/" />
           </div>
         </div>
