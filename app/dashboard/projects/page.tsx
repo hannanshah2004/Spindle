@@ -13,6 +13,7 @@ interface Project {
   id: string;
   name: string;
   createdAt: string; // Assuming API returns ISO string
+  sessionCount: number; // Add sessionCount field
   // sessions: number; // Add this when backend API supports it
 }
 
@@ -114,7 +115,9 @@ export default async function ProjectsPage() {
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-slate-600">0 sessions</span>
+                    <span className="text-slate-600">
+                       {project.sessionCount} {project.sessionCount === 1 ? 'session' : 'sessions'}
+                    </span>
                     <span className="text-blue-600 hover:text-blue-800">View details →</span>
                   </div>
                 </Link>

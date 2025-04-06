@@ -16,9 +16,23 @@ export async function GET() {
     const projects = await prisma.project.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
+      include: {
+        _count: {
+          select: { sessions: true },
+        },
+      },
     });
 
-    return NextResponse.json(projects);
+    const projectsWithSessionCount = projects.map(project => ({
+        id: project.id,
+        name: project.name,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+        userId: project.userId,
+        sessionCount: project._count.sessions,
+    }));
+
+    return NextResponse.json(projectsWithSessionCount);
 
   } catch (error) {
     console.error("Error fetching projects:", error);
