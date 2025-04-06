@@ -46,11 +46,18 @@ export default async function Home() {
               Welcome to Spindle
             </h1>
 
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+            <p className="text-lg text-slate-600 max-w-xl mx-auto mb-8">
               The platform for running headless browsers with powerful automation capabilities
             </p>
-          </div>
 
+            <Link
+              href="/dashboard" 
+              className="mt-4 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 px-5 text-center shadow-sm hover:shadow transition-all duration-200 w-full sm:w-auto"
+            >
+              Try Spindle Now
+            </Link>
+
+          </div>
 
           <div className="space-y-16">
             <section>
@@ -142,14 +149,6 @@ export default async function Home() {
             </section>
           </div>
 
-          <div className="flex gap-6 items-center flex-col sm:flex-row justify-center mt-16">
-            <Link
-              href="/dashboard"
-              className="rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium py-3 px-6 text-center shadow-sm hover:shadow transition-all duration-200 w-full sm:w-auto"
-            >
-              Try Spindle Now
-            </Link>
-          </div>
         </div>
       </main>
 
