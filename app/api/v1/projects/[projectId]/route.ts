@@ -16,7 +16,8 @@ export async function GET(request: Request, { params }: { params: Params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { projectId } = params;
+    const resolvedParams = await params;
+    const { projectId } = resolvedParams;
 
     if (!projectId) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
@@ -50,7 +51,8 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { projectId } = params;
+    const resolvedParams = await params;
+    const { projectId } = resolvedParams;
 
     if (!projectId) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });

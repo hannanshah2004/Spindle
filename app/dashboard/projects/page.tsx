@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowLeft, FolderPlus, Search } from "lucide-react"
 import CreateProjectForm from "./CreateProjectForm";
 import { cookies } from 'next/headers'; // Import cookies
+import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies'; // Explicit type import
 
 // Define type for Project data fetched from API
 // TODO: Update this type if the API response changes (e.g., add session count)
@@ -19,13 +20,15 @@ interface Project {
 async function getProjects(): Promise<Project[]> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.API_BASE_URL || 'http://localhost:3000';
-    const cookieStore = cookies(); // Get cookies
+    // Await cookies() as per runtime error message, despite potential linter confusion
+    const cookieStore: ReadonlyRequestCookies = await cookies(); 
+    const cookieHeader = cookieStore.getAll().map((c: { name: string; value: string }) => `${c.name}=${c.value}`).join('; ');
     
     const response = await fetch(`${baseUrl}/api/v1/projects`, {
       method: 'GET',
       headers: {
         // Forward cookies for authentication
-        Cookie: cookieStore.toString()
+        Cookie: cookieHeader
       },
       cache: 'no-store', 
     });

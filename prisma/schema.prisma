@@ -41,6 +41,7 @@ model Session {
   status      String    // e.g., 'running', 'stopped', 'error' (RESTORED)
   projectId   String
   project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  startUrl    String?   // Starting URL for the session
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   lastUsedAt  DateTime?

@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowLeft, Clock, CalendarDays, Play } from "lucide-react"
 import CreateSessionForm from "./CreateSessionForm";
 import { cookies } from 'next/headers';
+import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 
 type Props = {
   params: {
@@ -33,12 +34,13 @@ interface Session {
 async function getProjectDetails(projectId: string): Promise<ProjectDetails | null> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.API_BASE_URL || 'http://localhost:3000';
-    const cookieStore = cookies();
+    const cookieStore: ReadonlyRequestCookies = await cookies();
+    const cookieHeader = cookieStore.getAll().map((c: { name: string; value: string }) => `${c.name}=${c.value}`).join('; ');
     
     const response = await fetch(`${baseUrl}/api/v1/projects/${projectId}`, {
       method: 'GET',
       headers: {
-        Cookie: cookieStore.toString()
+        Cookie: cookieHeader
       },
       cache: 'no-store',
     });
@@ -58,12 +60,13 @@ async function getProjectDetails(projectId: string): Promise<ProjectDetails | nu
 async function getAllSessions(): Promise<Session[]> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.API_BASE_URL || 'http://localhost:3000';
-    const cookieStore = cookies();
+    const cookieStore: ReadonlyRequestCookies = await cookies();
+    const cookieHeader = cookieStore.getAll().map((c: { name: string; value: string }) => `${c.name}=${c.value}`).join('; ');
     
     const response = await fetch(`${baseUrl}/api/v1/sessions`, {
       method: 'GET',
       headers: {
-        Cookie: cookieStore.toString()
+        Cookie: cookieHeader
       },
       cache: 'no-store',
     });

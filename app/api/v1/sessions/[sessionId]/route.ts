@@ -1,7 +1,12 @@
+// Remove the Edge Runtime setting
+// export const runtime = 'edge';
+
 import { NextResponse } from 'next/server';
 // import { auth } from '@clerk/nextjs/server'; // Remove this
 import { PrismaClient } from '@prisma/client';
-import { removeSession } from '../sessionStore';
+// Switch to the new stagehandManager
+// import { removeSession } from '../sessionStore';
+import { removeStagehand } from '@/app/lib/stagehandManager';
 import { getOrCreateUser } from '@/app/lib/user'; // Import our utility
 
 const prisma = new PrismaClient();
@@ -10,7 +15,7 @@ interface Params {
   sessionId: string;
 }
 
-export async function GET({ params }: { params: Params }) {
+export async function GET(request: Request, { params }: { params: Params }) {
   try {
     // Get user from our database
     const user = await getOrCreateUser();
@@ -19,7 +24,9 @@ export async function GET({ params }: { params: Params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { sessionId } = params;
+    // Await params before destructuring
+    const resolvedParams = await params;
+    const { sessionId } = resolvedParams;
 
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
@@ -51,7 +58,7 @@ export async function GET({ params }: { params: Params }) {
   }
 }
 
-export async function DELETE({ params }: { params: Params }) {
+export async function DELETE(request: Request, { params }: { params: Params }) {
   try {
     // Get user from our database
     const user = await getOrCreateUser();
@@ -60,7 +67,9 @@ export async function DELETE({ params }: { params: Params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { sessionId } = params;
+    // Await params before destructuring
+    const resolvedParams = await params;
+    const { sessionId } = resolvedParams;
 
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
@@ -73,8 +82,13 @@ export async function DELETE({ params }: { params: Params }) {
     });
 
     if (!session) {
-      // If session doesn't exist in DB, no need to try removing it from the store
-      // await removeSession(sessionId); // Skip this - we're not using Stagehand
+      // Still try to clean up potential Stagehand instance even if no DB record exists
+      try {
+        await removeStagehand(sessionId);
+      } catch (cleanupError) {
+        // Just log, don't fail the request
+        console.error(`Failed to clean up Stagehand instance for session ${sessionId}:`, cleanupError);
+      }
       return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
 
@@ -83,9 +97,13 @@ export async function DELETE({ params }: { params: Params }) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // 3. In a production system, this is where you would clean up the browser session
-    // For now, we'll skip the browser cleanup since we're not initializing Stagehand
-    // await removeSession(sessionId); // Skip this - we're not using Stagehand
+    // 3. Clean up Stagehand instance if it exists
+    try {
+      await removeStagehand(sessionId);
+    } catch (cleanupError) {
+      // Just log, don't fail the delete operation
+      console.error(`Error cleaning up Stagehand instance for session ${sessionId}:`, cleanupError);
+    }
 
     // 4. Delete Session from DB
     await prisma.session.delete({
@@ -96,9 +114,7 @@ export async function DELETE({ params }: { params: Params }) {
     return new NextResponse(null, { status: 204 }); // No content on successful delete
 
   } catch (error) {
-    console.error(`Error deleting session ${params.sessionId}:`, error);
-    // No need to attempt cleanup since we're not using Stagehand
-    // await removeSession(params.sessionId).catch(cleanupError => {...}); // Skip this
+    console.error(`Error deleting session ${params?.sessionId || 'unknown'}:`, error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 } 

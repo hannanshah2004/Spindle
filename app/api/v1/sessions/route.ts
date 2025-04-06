@@ -1,12 +1,18 @@
+// Remove the Edge Runtime setting
+// export const runtime = 'edge';
+
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+// Remove the auth import since we're using getOrCreateUser
+// import { auth } from '@clerk/nextjs/server';
 import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid'; // To generate unique session IDs
-import { Stagehand, type AvailableModel } from '@browserbasehq/stagehand'; // Import AvailableModel type
-import { storeSession } from './sessionStore'; // ADD
+// These imports will be needed when we implement Stagehand initialization
+// import { Stagehand, type AvailableModel } from '@browserbasehq/stagehand';
+// import { storeSession } from './sessionStore';
+import { getOrCreateUser } from '@/app/lib/user';
 
-// Define the allowed models explicitly based on Stagehand's expected types
-// (Keep this updated if Stagehand adds more models)
+// Define the allowed models (commented out until needed)
+/*
 const ALLOWED_MODELS: AvailableModel[] = [
   'gpt-4o',
   'gpt-4o-mini',
@@ -16,21 +22,24 @@ const ALLOWED_MODELS: AvailableModel[] = [
   'claude-3-5-sonnet-20241022',
   'claude-3-5-sonnet-20240620',
   'claude-3-7-sonnet-latest',
-  // Add other models supported by Stagehand's AvailableModel type if needed
 ];
+*/
 
+// Use a single PrismaClient instance
 const prisma = new PrismaClient();
 
 interface RequestBody {
   projectId: string;
+  startUrl?: string;
   // Add other necessary session creation parameters here (e.g., browser type, contextId?)
 }
 
 export async function GET() {
   try {
-    const { userId } = await auth();
-
-    if (!userId) {
+    // Get user from our database instead of using auth() directly
+    const user = await getOrCreateUser();
+    
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -38,7 +47,7 @@ export async function GET() {
     const sessions = await prisma.session.findMany({
       where: {
         project: {
-          userId: userId,
+          userId: user.id,
         },
       },
       include: {
@@ -67,13 +76,15 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { userId } = await auth();
-    const body: RequestBody = await request.json();
-    const { projectId } = body;
-
-    if (!userId) {
+    // Get user from our database
+    const user = await getOrCreateUser();
+    
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    const body: RequestBody = await request.json();
+    const { projectId, startUrl } = body;
 
     if (!projectId) {
       return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
@@ -87,63 +98,39 @@ export async function POST(request: Request) {
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
-    if (project.userId !== userId) {
+    
+    // Check against our database user ID
+    if (project.userId !== user.id) {
       return NextResponse.json({ error: 'Forbidden - Project does not belong to user' }, { status: 403 });
     }
 
-    // 2. Create and Initialize Stagehand Instance
+    // 2. Create a session ID and record in the database first
     const sessionId = uuidv4();
-    let stagehandInstance: Stagehand | undefined = undefined;
-    try {
-      // Determine the model name safely
-      const requestedModel = process.env.STAGEHAND_MODEL_NAME;
-      const modelName: AvailableModel = 
-        requestedModel && ALLOWED_MODELS.includes(requestedModel as AvailableModel) 
-        ? (requestedModel as AvailableModel) 
-        : 'gpt-4o'; // Default to gpt-4o if env var is missing or invalid
-        
-      // TODO: Add OPENAI_API_KEY or ANTHROPIC_API_KEY to environment variables
-      // TODO: Consider making modelName configurable via request body or project settings
-      stagehandInstance = new Stagehand({
-        env: 'LOCAL',
-        modelName: modelName, // Use the validated model name
-        modelClientOptions: {
-            apiKey: process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY, // Use appropriate key
-        },
-        verbose: 1
-      });
-
-      await stagehandInstance.init(); // Initialize the browser connection
-
-      // Store the active instance
-      storeSession(sessionId, stagehandInstance);
-
-    } catch (stagehandError) {
-        console.error("Stagehand initialization failed:", stagehandError);
-        // Ensure partial resources aren't left hanging if init fails but instance was created
-        // Now safe to check stagehandInstance as it's initialized to undefined
-        if (stagehandInstance) await stagehandInstance.close().catch(err => console.error("Error closing failed Stagehand instance:", err));
-        return NextResponse.json({ error: 'Failed to initialize browser session' }, { status: 500 });
-    }
-
-    // 3. Create Session record in DB
+    
+    // Create Session record with initial status
     const newSession = await prisma.session.create({
       data: {
-        id: sessionId, // Use the generated sessionId
-        status: 'running', // Initial status
+        id: sessionId,
+        status: 'created', // Initial status before Stagehand initialization
         projectId: projectId,
-        lastUsedAt: new Date(), // Set initial usage time
+        lastUsedAt: new Date(),
+        startUrl: startUrl || 'https://example.com', // Use provided URL or default
       },
     });
 
-    // 4. Return the new session details (only the DB record)
-    // We don't return the Stagehand instance itself
+    // 3. Return session details first to keep API responsive
+    // Any Stagehand initialization will happen separately when session is accessed
     return NextResponse.json(newSession, { status: 201 });
+
+    /* NOTE: For a production app, we would:
+     * 1. Create the session record (as we do now)
+     * 2. Return the response immediately
+     * 3. Use a background job or separate service to initialize Stagehand 
+     * 4. Update the session status when initialization is complete
+     */
 
   } catch (error) {
     console.error("Error creating session:", error);
-    // Attempt cleanup if a stagehand instance might exist in the map but DB failed
-    // This part is tricky without knowing the exact session ID if DB insert fails
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 } 
