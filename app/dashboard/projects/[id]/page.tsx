@@ -204,11 +204,21 @@ export default async function ProjectDetailPage({ params }: Props) {
           {projectSessions.length > 0 ? (
             <div className="divide-y divide-slate-100">
               {projectSessions.map((session: Session) => (
-                <div key={session.id} className="p-4 hover:bg-slate-50 transition-colors">
+                <Link
+                  key={session.id}
+                  href={`/dashboard/projects/${projectId}/sessions/${session.id}`}
+                  className="block p-4 hover:bg-slate-50 transition-colors group"
+                >
                   <div className="flex justify-between items-center mb-2">
                     <div className="flex items-center gap-2">
                       <div
-                        className={`h-2 w-2 rounded-full ${session.status === "completed" ? "bg-emerald-500" : session.status === 'running' ? 'bg-yellow-500' : "bg-red-500"}`}
+                        className={`h-2 w-2 rounded-full ${ 
+                            session.status === "completed" ? "bg-emerald-500" :
+                            session.status === 'running' ? 'bg-yellow-500' :
+                            session.status === 'failed' ? 'bg-red-500' :
+                            session.status === 'created' ? 'bg-blue-500' :
+                            "bg-slate-400" // Default grey for other statuses
+                        }`}
                       ></div>
                       <span className="font-medium text-slate-700 truncate max-w-[150px] sm:max-w-[250px]">{session.id}</span>
                       <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
@@ -221,8 +231,9 @@ export default async function ProjectDetailPage({ params }: Props) {
                   </div>
                   <div className="flex justify-between text-sm mt-1">
                     <span className="text-slate-500">Last used: {new Date(session.lastUsedAt).toLocaleString()}</span>
+                    <span className="text-blue-600 text-xs group-hover:underline">View Details →</span>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           ) : (
