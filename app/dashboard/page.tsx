@@ -181,8 +181,6 @@ export default async function Dashboard() {
                   {[
                     { name: "Home", icon: Home, href: "/" },
                     { name: "Create New Session", icon: Globe, href: "#" },
-                    { name: "View Documentation", icon: HelpCircle, href: "/docs" },
-                    { name: "Account Settings", icon: Settings, href: "#" },
                   ].map((item, index) => (
                     <Link
                       key={index}
@@ -195,24 +193,6 @@ export default async function Dashboard() {
                   ))}
                 </nav>
               </div>
-            </div>
-
-            {/* Subscription status */}
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-sm text-white p-5">
-              <h3 className="font-semibold mb-2">Free Plan</h3>
-              <p className="text-slate-300 text-sm mb-4">You're currently on the free plan with limited features.</p>
-              <div className="mb-4">
-                <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                  <div className="h-full bg-emerald-500 w-[35%]"></div>
-                </div>
-                <div className="flex justify-between text-xs mt-2">
-                  <span className="text-slate-300">35% used</span>
-                  <span className="text-slate-300">7/20 sessions</span>
-                </div>
-              </div>
-              <button className="w-full bg-white text-slate-800 hover:bg-slate-100 font-medium py-2 rounded-lg transition-colors">
-                Upgrade Plan
-              </button>
             </div>
           </div>
         </div>
