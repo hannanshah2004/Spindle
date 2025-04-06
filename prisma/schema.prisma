@@ -36,15 +36,16 @@ model Project {
 }
 
 model Session {
-  id          String    @id @default(uuid())
-  containerId String?   // Docker container ID (RESTORED)
-  status      String    // e.g., 'running', 'stopped', 'error' (RESTORED)
-  projectId   String
-  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  startUrl    String?   // Starting URL for the session
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  lastUsedAt  DateTime?
+  id                String    @id @default(uuid())
+  containerId       String?   // Docker container ID (RESTORED)
+  status            String    // e.g., 'running', 'stopped', 'error' (RESTORED)
+  projectId         String
+  project           Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  startUrl          String?   // Starting URL for the session
+  nlpInstruction    String?   // Initial NLP instruction (NEW)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastUsedAt        DateTime?
 
   @@index([projectId])
 }
