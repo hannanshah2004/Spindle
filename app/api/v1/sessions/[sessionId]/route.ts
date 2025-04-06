@@ -17,7 +17,7 @@ interface ExpectedDockerError extends Error {
   json?: Record<string, unknown>;
 }
 
-export async function GET(_request: Request, { params }: { params: Params }) {
+export async function GET({ params }: { params: Params }) {
   try {
     const { userId } = await auth();
     const { sessionId } = params;
@@ -83,7 +83,8 @@ export async function GET(_request: Request, { params }: { params: Params }) {
     }
 
     // 4. Return Session Details (excluding project info)
-    const { project: _project, ...sessionDetails } = session; // Prefix project with underscore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { project, ...sessionDetails } = session;
     return NextResponse.json(sessionDetails);
 
   } catch (error) {
@@ -92,7 +93,7 @@ export async function GET(_request: Request, { params }: { params: Params }) {
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Params }) {
+export async function DELETE({ params }: { params: Params }) {
   try {
     const { userId } = await auth();
     const { sessionId } = params;

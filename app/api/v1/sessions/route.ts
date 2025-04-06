@@ -12,6 +12,45 @@ interface RequestBody {
   // Add other necessary session creation parameters here (e.g., browser type, contextId?)
 }
 
+export async function GET() {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Find all sessions where the associated project's userId matches
+    const sessions = await prisma.session.findMany({
+      where: {
+        project: {
+          userId: userId,
+        },
+      },
+      include: {
+        project: { // Optionally include basic project info
+          select: {
+            id: true,
+            name: true,
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    // TODO: Optionally, iterate through sessions and check live container status?
+    // For now, just returning the DB state.
+
+    return NextResponse.json(sessions);
+
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { userId } = await auth();
