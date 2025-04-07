@@ -6,8 +6,6 @@ import { Play } from 'lucide-react'
 
 interface AddActionFormProps {
   sessionId: string;
-  // Remove projectId for now as it's unused
-  // projectId: string; 
 }
 
 export default function AddActionForm({ sessionId }: AddActionFormProps) {
