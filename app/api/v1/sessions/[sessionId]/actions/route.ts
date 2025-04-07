@@ -12,10 +12,6 @@ const actionSchema = z.object({
   action: z.string().min(1, "Action instruction is required")
 });
 
-// interface Params {
-//   sessionId: string;
-// }
-
 // export async function POST(request: Request, context: { params: Params }) {
 export async function POST(request: NextRequest) {
   let sessionId: string | null = null;

@@ -5,10 +5,6 @@ import { getOrCreateUser } from '@/app/lib/user';
 
 const prisma = new PrismaClient();
 
-// interface Params {
-//   projectId: string;
-// }
-
 export async function GET(request: NextRequest) {
   try {
     const user = await getOrCreateUser();

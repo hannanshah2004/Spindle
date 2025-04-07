@@ -6,10 +6,6 @@ import { getOrCreateUser } from '@/app/lib/user'; // Import our utility
 
 const prisma = new PrismaClient();
 
-// interface Params {
-//   sessionId: string;
-// }
-
 // export async function GET(request: Request, context: { params: Params }) {
 export async function GET(request: NextRequest) {
   try {
