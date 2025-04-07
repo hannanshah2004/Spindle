@@ -118,7 +118,6 @@ export default async function ProjectsPage() {
                     <span className="text-slate-600">
                        {project.sessionCount} {project.sessionCount === 1 ? 'session' : 'sessions'}
                     </span>
-                    <span className="text-blue-600 hover:text-blue-800">View details →</span>
                   </div>
                 </Link>
               ))}
