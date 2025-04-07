@@ -133,9 +133,6 @@ export default async function ProjectsPage() {
                         <div className="flex items-center text-sm text-slate-500">
                           <Calendar className="h-4 w-4 mr-1.5" />
                           <span>Created on {formattedDate}</span>
-                          <span className="mx-2">•</span>
-                          <Clock className="h-4 w-4 mr-1.5" />
-                          <span>Last updated {Math.floor(Math.random() * 24)} hours ago</span>
                         </div>
                       </div>
                       <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
