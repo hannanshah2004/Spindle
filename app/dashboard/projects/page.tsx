@@ -78,13 +78,6 @@ export default async function ProjectsPage() {
       {/* Main content */}
       <main className="mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:px-12">
         <div className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-2 tracking-tight">Your Projects</h2>
-              <p className="text-slate-600">Manage and create browser automation projects</p>
-            </div>
-          </div>
-
           {/* Create Project Form */}
           <div className="mb-12">
             <CreateProjectForm />
