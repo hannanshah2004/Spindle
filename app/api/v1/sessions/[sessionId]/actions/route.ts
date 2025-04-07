@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { PrismaClient } from '@prisma/client'; // Removed SessionAction import
 import { getOrCreateUser } from '@/app/lib/user';
-// Remove local stagehandManager import
-// import { actOnSession } from '@/app/lib/stagehandManager'; 
 import { z } from 'zod';
 
 const prisma = new PrismaClient();

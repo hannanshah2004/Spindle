@@ -81,23 +81,6 @@ export async function DELETE(request: NextRequest) {
     const runningSessions = project.sessions.filter(s => s.status === 'running');
     if (runningSessions.length > 0) {
       console.log(`[DELETE /projects] Found ${runningSessions.length} running sessions associated with project ${projectId}. These will be orphaned if not cleaned up via session deletion.`);
-      // The cleanup logic for running sessions is now handled by the external stagehand-service,
-      // typically triggered by deleting the session itself via DELETE /api/v1/sessions/[sessionId].
-      // We no longer import or call removeStagehand here.
-      
-      // // Import needed only when there are running sessions // REMOVED
-      // const { removeStagehand } = await import('@/app/lib/stagehandManager'); // REMOVED
-      
-      // // Clean up each running session // REMOVED
-      // for (const session of runningSessions) { // REMOVED
-      //   try { // REMOVED
-      //     console.log(`[DELETE /projects] Cleaning up running session: ${session.id}`); // REMOVED
-      //     await removeStagehand(session.id); // REMOVED
-      //   } catch (err) { // REMOVED
-      //     // Log but continue - we want to delete the project anyway // REMOVED
-      //     console.error(`[DELETE /projects] Error cleaning up session ${session.id}:`, err); // REMOVED
-      //   } // REMOVED
-      // } // REMOVED
     }
 
     // 3. Delete the project (and cascading delete all sessions/actions)

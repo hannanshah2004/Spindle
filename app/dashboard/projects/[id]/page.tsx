@@ -8,12 +8,6 @@ import DeleteProjectButton from "../DeleteProjectButton"
 import { cookies } from 'next/headers'
 import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies'
 
-// type Props = {
-//   params: {
-//     id: string
-//   }
-// }
-
 // Define types for API data
 interface ProjectDetails {
   id: string;

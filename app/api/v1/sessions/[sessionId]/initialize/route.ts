@@ -104,11 +104,7 @@ export async function POST(request: NextRequest) {
     // Catch errors from DB lookups, user auth, or unexpected issues
     console.error(`[API Route] Unexpected error during initialize flow for session ${sessionId || 'unknown'}:`, error);
     const message = error instanceof Error ? error.message : 'An unexpected error occurred';
-    
-    // If we know the session ID and an error occurred *before* calling Stagehand or *after* a successful call,
-    // we might not need to mark it as failed here, as the main failure wasn't Stagehand initialization itself.
-    // However, if the error happens during the fetch call itself (network error), the session remains 'created'.
-    
+        
     return NextResponse.json({ error: 'Internal Server Error during initialization flow', details: message }, { status: 500 });
   }
 } 
