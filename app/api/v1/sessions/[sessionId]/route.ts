@@ -9,7 +9,7 @@ interface Params {
   sessionId: string;
 }
 
-export async function GET(request: Request, { params }: { params: Params }) {
+export async function GET(request: Request, context: { params: Params }) {
   try {
     // Get user from our database
     const user = await getOrCreateUser();
@@ -19,8 +19,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
     }
     
     // Await params before destructuring
-    const resolvedParams = await params;
-    const { sessionId } = resolvedParams;
+    const { sessionId } = context.params;
 
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
@@ -52,12 +51,12 @@ export async function GET(request: Request, { params }: { params: Params }) {
     return NextResponse.json(sessionDetails); // sessionDetails now includes the 'actions' array
 
   } catch (error) {
-    console.error(`Error fetching session ${params.sessionId}:`, error);
+    console.error(`Error fetching session ${context.params?.sessionId || 'unknown'}:`, error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: Params }) {
+export async function DELETE(request: Request, context: { params: Params }) {
   // Note: This is now more like an "Update Status to Completed/Terminated" endpoint
   let sessionId: string | null = null;
   try {
@@ -66,8 +65,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const resolvedParams = await params;
-    sessionId = resolvedParams.sessionId; // Assign sessionId here
+    sessionId = context.params.sessionId; // Assign sessionId here
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
     }

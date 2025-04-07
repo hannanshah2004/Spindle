@@ -8,7 +8,7 @@ interface Params {
   projectId: string;
 }
 
-export async function GET(request: Request, { params }: { params: Params }) {
+export async function GET(request: Request, context: { params: Params }) {
   try {
     const user = await getOrCreateUser();
     
@@ -16,8 +16,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const resolvedParams = await params;
-    const { projectId } = resolvedParams;
+    const { projectId } = context.params;
 
     if (!projectId) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
@@ -38,12 +37,12 @@ export async function GET(request: Request, { params }: { params: Params }) {
     return NextResponse.json(project);
 
   } catch (error) {
-    console.error(`Error fetching project ${params?.projectId || 'unknown'}:`, error);
+    console.error(`Error fetching project ${context.params?.projectId || 'unknown'}:`, error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: Params }) {
+export async function DELETE(request: Request, context: { params: Params }) {
   try {
     const user = await getOrCreateUser();
     
@@ -51,8 +50,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const resolvedParams = await params;
-    const { projectId } = resolvedParams;
+    const { projectId } = context.params;
 
     if (!projectId) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
@@ -110,7 +108,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
     return new NextResponse(null, { status: 204 });
 
   } catch (error) {
-    console.error(`Error deleting project ${params?.projectId || 'unknown'}:`, error);
+    console.error(`Error deleting project ${context.params?.projectId || 'unknown'}:`, error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 } 

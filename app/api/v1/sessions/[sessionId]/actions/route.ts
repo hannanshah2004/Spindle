@@ -15,7 +15,7 @@ interface Params {
   sessionId: string;
 }
 
-export async function POST(request: Request, { params }: { params: Params }) {
+export async function POST(request: Request, context: { params: Params }) {
   let sessionId: string | null = null;
 
   try {
@@ -26,8 +26,7 @@ export async function POST(request: Request, { params }: { params: Params }) {
     }
 
     // 2. Validate Params
-    const resolvedParams = await params;
-    sessionId = resolvedParams.sessionId;
+    sessionId = context.params.sessionId;
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
     }
@@ -90,7 +89,7 @@ export async function POST(request: Request, { params }: { params: Params }) {
 
   } catch (error) {
     // Catch errors from validation, DB checks, or unexpected issues in actOnSession
-    console.error(`[Actions] Unexpected error for session ${sessionId}:`, error);
+    console.error(`[Actions] Unexpected error for session ${sessionId || 'unknown'}:`, error);
     const message = error instanceof Error ? error.message : 'An unexpected error occurred';
     // Optionally update session status to failed here? Maybe not, depends on error type.
     return NextResponse.json({ error: 'Failed to perform action due to server error', details: message }, { status: 500 });

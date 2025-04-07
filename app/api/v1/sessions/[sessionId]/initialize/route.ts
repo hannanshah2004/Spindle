@@ -9,7 +9,7 @@ interface Params {
   sessionId: string;
 }
 
-export async function POST(request: Request, { params }: { params: Params }) {
+export async function POST(request: Request, context: { params: Params }) {
   let stagehandInitialized = false;
   let sessionId: string | null = null;
 
@@ -21,8 +21,7 @@ export async function POST(request: Request, { params }: { params: Params }) {
     }
 
     // 2. Validate Params
-    const resolvedParams = await params;
-    sessionId = resolvedParams.sessionId;
+    sessionId = context.params.sessionId;
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
     }
@@ -74,7 +73,7 @@ export async function POST(request: Request, { params }: { params: Params }) {
     return NextResponse.json({ success: true, message: 'Session initialized and navigated.' });
 
   } catch (error) {
-    console.error(`[Initialize] Caught error during session ${sessionId} initialization/navigation:`, error);
+    console.error(`[Initialize] Caught error during session ${sessionId || 'unknown'} initialization/navigation:`, error);
     // Update status to 'failed' if initialization started but something went wrong
     if (sessionId && stagehandInitialized) {
         console.log(`[Initialize] Attempting to mark session ${sessionId} as failed due to error.`);
