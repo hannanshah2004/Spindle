@@ -70,7 +70,7 @@ export default async function Home() {
                 <p className="text-xl">
                   Spindle is a platform for running headless browsers. If you&apos;re building automations that need to
                   interact with websites, fill out forms, or replicate user actions, Spindle manages that infrastructure
-                  so you don&apos;t have to maintain your own fleet of headless browsers.
+                  so you don&apos;t have to maintain your own headless browsers.
                 </p>
                 <p className="text-xl">
                   It provides a simple API for controlling browsers, useful features for managing browser sessions, and
