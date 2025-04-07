@@ -8,11 +8,11 @@ import DeleteProjectButton from "../DeleteProjectButton"
 import { cookies } from 'next/headers'
 import type { ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies'
 
-type Props = {
-  params: {
-    id: string
-  }
-}
+// type Props = {
+//   params: {
+//     id: string
+//   }
+// }
 
 // Define types for API data
 interface ProjectDetails {
@@ -82,7 +82,7 @@ async function getAllSessions(): Promise<Session[]> {
   }
 }
 
-export default async function ProjectDetailPage({ params }: Props) {
+export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
   const user = await currentUser()
 
   // If user is not authenticated, redirect to home page
