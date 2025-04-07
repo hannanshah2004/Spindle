@@ -2,12 +2,18 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getOrCreateUser } from '@/app/lib/user';
-import { initializeStagehand, removeStagehand } from '@/app/lib/stagehandManager';
 
 const prisma = new PrismaClient();
 
+// Get the Stagehand service URL from environment variables
+const STAGEHAND_SERVICE_URL = process.env.STAGEHAND_SERVICE_URL;
+
+if (!STAGEHAND_SERVICE_URL) {
+  console.warn("STAGEHAND_SERVICE_URL environment variable is not set. Session initialization will fail.");
+  // Depending on deployment strategy, you might want to throw an error here during build/startup
+}
+
 export async function POST(request: NextRequest) {
-  let stagehandInitialized = false;
   let sessionId: string | null = null;
 
   try {
@@ -38,58 +44,71 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     if (session.status !== 'created') {
-      return NextResponse.json({ error: `Session already initialized with status: ${session.status}` }, { status: 409 }); 
+      return NextResponse.json({ error: `Session already initialized or in invalid state: ${session.status}` }, { status: 409 });
     }
     
     const startUrl = session.startUrl || 'https://example.com'; // Get startUrl from session
 
-    // 4. Initialize Stagehand (launches browser, sets status to 'running' or 'failed')
-    const stagehand = await initializeStagehand(sessionId); 
-    stagehandInitialized = true; 
-
-    // 5. Perform Initial Navigation using direct goto
-    console.log(`[Initialize] Navigating session ${sessionId} directly to ${startUrl}`);
-    try {
-      await stagehand.page.goto(startUrl, { waitUntil: 'domcontentloaded' }); 
-      console.log(`[Initialize] Direct navigation complete for session ${sessionId}`);
-    } catch(navError) {
-        console.error(`[Initialize] Initial navigation failed for session ${sessionId}:`, navError);
-        // If navigation fails, we should probably mark the session as failed and cleanup
-        await prisma.session.update({ where: { id: sessionId }, data: { status: 'failed' }});
-        // Call removeStagehand for cleanup
-        await removeStagehand(sessionId);
-        throw new Error(`Initial navigation to ${startUrl} failed.`); // Rethrow to be caught by main handler
+    if (!STAGEHAND_SERVICE_URL) {
+      return NextResponse.json({ error: 'Stagehand service is not configured on the server.' }, { status: 503 }); // 503 Service Unavailable
     }
 
-    // Update last used time
-    await prisma.session.update({
-        where: { id: sessionId },
-        data: { lastUsedAt: new Date() },
-      });
+    const stagehandInitializeUrl = `${STAGEHAND_SERVICE_URL}/sessions/${sessionId}/initialize`;
+    console.log(`[API Route] Calling Stagehand service to initialize: ${stagehandInitializeUrl}`);
 
-    // 6. Return Success (only indicates initialization + navigation started)
-    console.log(`[Initialize] Session ${sessionId} initialized and navigated successfully.`);
-    return NextResponse.json({ success: true, message: 'Session initialized and navigated.' });
+    // 4. Call the external Stagehand service to initialize and navigate
+    const response = await fetch(stagehandInitializeUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // Add any necessary auth headers for the stagehand service if needed
+        // 'Authorization': `Bearer ${process.env.STAGEHAND_API_KEY}` 
+      },
+      body: JSON.stringify({ startUrl: startUrl }),
+    });
+
+    // 5. Check the response from Stagehand service
+    if (!response.ok) {
+      let errorDetails = 'Failed to initialize session in Stagehand service.';
+      try {
+        const errorBody = await response.json();
+        errorDetails = errorBody.details || errorBody.error || errorDetails;
+        console.error(`[API Route] Stagehand service failed for ${sessionId}: Status ${response.status}, Body:`, errorBody);
+      } catch (e) {
+        console.error(`[API Route] Stagehand service failed for ${sessionId} with status ${response.status} and non-JSON response. Parse error:`, e);
+      }
+      // Mark the session as failed in our DB if Stagehand couldn't initialize
+      await prisma.session.update({
+        where: { id: sessionId },
+        data: { status: 'failed' },
+      });
+      // Return the status code received from Stagehand if possible, otherwise 500/503
+      const clientStatusCode = response.status >= 500 ? 503 : response.status; // Avoid leaking 500s directly?
+      return NextResponse.json({ error: 'Stagehand service failed to initialize session', details: errorDetails }, { status: clientStatusCode });
+    }
+
+    // 6. Stagehand service succeeded - update our DB status to 'running'
+    console.log(`[API Route] Stagehand service successful for ${sessionId}. Updating status to running.`);
+    await prisma.session.update({
+      where: { id: sessionId },
+      data: {
+        status: 'running',
+        lastUsedAt: new Date(),
+      },
+    });
+
+    // 7. Return success to the client
+    return NextResponse.json({ success: true, message: 'Session initialized and running.' });
 
   } catch (error) {
-    console.error(`[Initialize] Caught error during session ${sessionId || 'unknown'} initialization/navigation:`, error);
-    // Update status to 'failed' if initialization started but something went wrong
-    if (sessionId && stagehandInitialized) {
-        console.log(`[Initialize] Attempting to mark session ${sessionId} as failed due to error.`);
-        try {
-          await prisma.session.update({ where: { id: sessionId }, data: { status: 'failed' }});
-          console.log(`[Initialize] Session ${sessionId} marked as failed.`);
-          // Also attempt cleanup if error happened after initialization but NOT during navigation (already handled)
-          if (!(error instanceof Error && error.message.includes('Initial navigation'))) {
-             await removeStagehand(sessionId);
-          }
-        } catch (dbError) {
-          console.error(`[Initialize] Failed to update session status/cleanup for ${sessionId} after error:`, dbError);
-        }
-        // Note: Stagehand instance cleanup might happen here or be handled by a separate process
-    }
-    
+    // Catch errors from DB lookups, user auth, or unexpected issues
+    console.error(`[API Route] Unexpected error during initialize flow for session ${sessionId || 'unknown'}:`, error);
     const message = error instanceof Error ? error.message : 'An unexpected error occurred';
-    return NextResponse.json({ error: 'Session initialization or navigation failed', details: message }, { status: 500 });
+    
+    // If we know the session ID and an error occurred *before* calling Stagehand or *after* a successful call,
+    // we might not need to mark it as failed here, as the main failure wasn't Stagehand initialization itself.
+    // However, if the error happens during the fetch call itself (network error), the session remains 'created'.
+    
+    return NextResponse.json({ error: 'Internal Server Error during initialization flow', details: message }, { status: 500 });
   }
 } 

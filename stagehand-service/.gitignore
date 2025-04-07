@@ -1,0 +1,17 @@
+# Ignore node_modules, already installed via package.json
+node_modules
+
+# Ignore build artifacts
+dist
+
+# Ignore environment files
+.env*
+
+# Ignore logs
+*.log
+
+# Ignore OS-specific files
+.DS_Store
+
+# Ignore TypeScript build info
+*.tsbuildinfo 
