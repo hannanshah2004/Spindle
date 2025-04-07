@@ -16,7 +16,7 @@ export async function POST(request: Request, { params }: { params: Params }) {
   try {
     // 1. Authenticate User
     const user = await getOrCreateUser();
-    if (!user) {
+    if (!user || !user.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

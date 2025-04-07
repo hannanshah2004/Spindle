@@ -9,7 +9,7 @@ export async function GET() {
     // Get the user from our database
     const user = await getOrCreateUser();
     
-    if (!user) {
+    if (!user || !user.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   try {
     const user = await getOrCreateUser();
     
-    if (!user) {
+    if (!user || !user.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     

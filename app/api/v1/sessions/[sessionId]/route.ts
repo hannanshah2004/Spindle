@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { removeStagehand } from '@/app/lib/stagehandManager';
@@ -15,7 +14,7 @@ export async function GET(request: Request, { params }: { params: Params }) {
     // Get user from our database
     const user = await getOrCreateUser();
     
-    if (!user) {
+    if (!user || !user.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
@@ -63,7 +62,7 @@ export async function DELETE(request: Request, { params }: { params: Params }) {
   let sessionId: string | null = null;
   try {
     const user = await getOrCreateUser();
-    if (!user) {
+    if (!user || !user.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     

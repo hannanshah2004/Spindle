@@ -17,7 +17,7 @@ export async function GET() {
     // Get user from our database instead of using auth() directly
     const user = await getOrCreateUser();
     
-    if (!user) {
+    if (!user || !user.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -52,7 +52,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const user = await getOrCreateUser();
-    if (!user) {
+    if (!user || !user.isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
