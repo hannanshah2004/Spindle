@@ -82,7 +82,7 @@ async function getAllSessions(): Promise<Session[]> {
   }
 }
 
-export default async function ProjectDetailPage({ params }: { params: { id: string } }) {
+export default async function ProjectDetailPage({ params }: any) {
   const user = await currentUser()
 
   // If user is not authenticated, redirect to home page
