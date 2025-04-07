@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@browserbasehq/stagehand": "^2.0.0",
     "@clerk/nextjs": "^6.13.0",
     "@prisma/client": "^6.5.0",
     "@radix-ui/react-dialog": "^1.1.6",
