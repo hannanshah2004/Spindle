@@ -82,6 +82,7 @@ async function getAllSessions(): Promise<Session[]> {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export default async function ProjectDetailPage({ params }: any) {
   const user = await currentUser()
 
