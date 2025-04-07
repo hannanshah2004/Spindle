@@ -2,7 +2,7 @@ import { UserButton } from "@clerk/nextjs"
 import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { Home, Zap, Plus } from "lucide-react"
+import { Home, Zap, Plus, ChevronRight } from "lucide-react"
 
 export default async function Dashboard() {
   const user = await currentUser()
@@ -13,16 +13,22 @@ export default async function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white font-sans antialiased">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200">
-        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-800">Spindle Dashboard</h1>
-            <span className="bg-slate-100 text-slate-600 text-xs px-2 py-1 rounded-full">Beta</span>
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm backdrop-blur-sm bg-white/90">
+        <div className="mx-auto max-w-7xl px-6 py-5 sm:px-8 lg:px-12 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-md bg-slate-900 flex items-center justify-center mr-1">
+              <span className="text-white font-semibold">S</span>
+            </div>
+            <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Dashboard</h1>
+            <span className="bg-slate-900/5 text-slate-600 text-xs px-2.5 py-1 rounded-full font-medium">Beta</span>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center justify-center p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors">
+          <div className="flex items-center gap-5">
+            <Link
+              href="/"
+              className="flex items-center justify-center p-2.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all duration-200"
+            >
               <Home className="h-5 w-5" />
             </Link>
             <UserButton afterSignOutUrl="/" />
@@ -31,10 +37,14 @@ export default async function Dashboard() {
       </header>
 
       {/* Main content */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-slate-800 mb-2">Welcome back, {user.firstName || "User"}</h2>
-          <p className="text-slate-500">Here&apos;s what&apos;s happening with your browser automation today.</p>
+      <main className="mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:px-12">
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold text-slate-800 mb-3 tracking-tight">
+            Welcome back, {user.firstName || "User"}
+          </h2>
+          <p className="text-slate-600 text-lg">
+            Here&apos;s what&apos;s happening with your browser automation today.
+          </p>
         </div>
 
         {/* Stats Overview */}
@@ -42,38 +52,66 @@ export default async function Dashboard() {
           {/* Main content area */}
           <div className="lg:col-span-2 space-y-8">
             {/* Quick Actions Card */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-slate-100">
-                <h3 className="font-semibold text-slate-800">Get Started</h3>
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 className="font-semibold text-slate-800 text-xl">Get Started</h3>
+                <span className="text-sm text-slate-500">Quick actions</span>
               </div>
-              <div className="p-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Link 
+              <div className="p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <Link
                     href="/dashboard/projects"
-                    className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors"
+                    className="flex items-center gap-4 p-5 bg-slate-50 border border-slate-200 rounded-xl hover:bg-white transition-all duration-200 hover:shadow-lg group"
                   >
-                    <div className="bg-white p-2 rounded-full border border-blue-100">
-                      <Plus className="h-5 w-5 text-blue-500" />
+                    <div className="bg-slate-900 p-3 rounded-xl shadow-sm text-white">
+                      <Plus className="h-5 w-5" />
                     </div>
-                    <div>
-                      <h4 className="font-medium text-blue-800">View Projects</h4>
-                      <p className="text-blue-600 text-sm">Start building your automation</p>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-slate-800 text-lg mb-1">View Projects</h4>
+                      <p className="text-slate-600 text-base">Start building your automation</p>
                     </div>
+                    <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
                   </Link>
-                  
-                  <Link 
+
+                  <Link
                     href="/dashboard/tutorials"
-                    className="flex items-center gap-3 p-4 bg-purple-50 border border-purple-100 rounded-lg hover:bg-purple-100 transition-colors"
+                    className="flex items-center gap-4 p-5 bg-slate-50 border border-slate-200 rounded-xl hover:bg-white transition-all duration-200 hover:shadow-lg group"
                   >
-                    <div className="bg-white p-2 rounded-full border border-purple-100">
-                      <Zap className="h-5 w-5 text-purple-500" />
+                    <div className="bg-slate-900 p-3 rounded-xl shadow-sm text-white">
+                      <Zap className="h-5 w-5" />
                     </div>
-                    <div>
-                      <h4 className="font-medium text-purple-800">View Tutorials</h4>
-                      <p className="text-purple-600 text-sm">Learn how to use Spindle</p>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-slate-800 text-lg mb-1">View Tutorials</h4>
+                      <p className="text-slate-600 text-base">Learn how to use Spindle</p>
                     </div>
+                    <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-slate-600 transition-colors" />
                   </Link>
                 </div>
+              </div>
+            </div>
+
+            {/* Recent Activity Card */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300">
+              <div className="p-6 border-b border-slate-100">
+                <h3 className="font-semibold text-slate-800 text-xl">Recent Activity</h3>
+              </div>
+              <div className="divide-y divide-slate-100">
+                {[
+                  { title: "Project created", description: "Website Scraper", time: "2 hours ago" },
+                  { title: "Automation run", description: "Email Campaign", time: "5 hours ago" },
+                  { title: "Settings updated", description: "Browser Configuration", time: "1 day ago" },
+                ].map((activity, index) => (
+                  <div key={index} className="p-6 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                    <div className="bg-slate-100 p-3 rounded-full">
+                      <div className="h-2 w-2 rounded-full bg-slate-900"></div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-slate-800">{activity.title}</h4>
+                      <p className="text-slate-500">{activity.description}</p>
+                    </div>
+                    <span className="text-sm text-slate-400">{activity.time}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -81,25 +119,31 @@ export default async function Dashboard() {
           {/* Sidebar */}
           <div className="space-y-8">
             {/* User information card */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-              <div className="p-5 border-b border-slate-100">
-                <h3 className="font-semibold text-slate-800">Account Information</h3>
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300">
+              <div className="p-6 border-b border-slate-100 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
+                  <span className="text-slate-800 font-medium">{user.firstName?.[0] || user.lastName?.[0] || "U"}</span>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-800 text-xl">Account</h3>
+                  <p className="text-slate-500 text-sm">Personal information</p>
+                </div>
               </div>
-              <div className="p-5">
-                <div className="flex flex-col gap-4">
+              <div className="p-6">
+                <div className="flex flex-col gap-6">
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Email Address</p>
-                    <p className="text-sm text-slate-700 font-medium">{user.emailAddresses[0]?.emailAddress}</p>
+                    <p className="text-sm font-medium text-slate-500 mb-2">Email Address</p>
+                    <p className="text-base text-slate-700 font-medium">{user.emailAddresses[0]?.emailAddress}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">User ID</p>
-                    <p className="text-sm text-slate-700 font-mono bg-slate-50 p-1 rounded border border-slate-100 overflow-x-auto">
-                      {user.id}
-                    </p>
+                    <p className="text-sm font-medium text-slate-500 mb-2">User ID</p>
+                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 overflow-x-auto">
+                      <p className="text-sm text-slate-700 font-mono">{user.id}</p>
+                    </div>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Account Created</p>
-                    <p className="text-sm text-slate-700">
+                    <p className="text-sm font-medium text-slate-500 mb-2">Account Created</p>
+                    <p className="text-base text-slate-700">
                       {new Date(user.createdAt).toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "long",
@@ -109,8 +153,33 @@ export default async function Dashboard() {
                   </div>
                 </div>
               </div>
+              <div className="bg-slate-50 p-4 border-t border-slate-200">
+                <Link
+                  href="/dashboard/settings"
+                  className="text-slate-600 text-sm hover:text-slate-900 flex items-center justify-center gap-1 transition-colors"
+                >
+                  Manage account settings
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </div>
             </div>
 
+            {/* Quick Stats */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300">
+              <div className="p-6 border-b border-slate-100">
+                <h3 className="font-semibold text-slate-800 text-xl">Quick Stats</h3>
+              </div>
+              <div className="grid grid-cols-2 divide-x divide-slate-100">
+                <div className="p-6 text-center">
+                  <p className="text-3xl font-bold text-slate-800">12</p>
+                  <p className="text-sm text-slate-500 mt-1">Total Projects</p>
+                </div>
+                <div className="p-6 text-center">
+                  <p className="text-3xl font-bold text-slate-800">8</p>
+                  <p className="text-sm text-slate-500 mt-1">Active Automations</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </main>
