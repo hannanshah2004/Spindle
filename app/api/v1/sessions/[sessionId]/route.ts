@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 // }
 
 // export async function GET(request: Request, context: { params: Params }) {
-export async function GET(request: NextRequest, context: { params: { sessionId: string } }) {
+export async function GET(request: NextRequest) {
   try {
     // Get user from our database
     const user = await getOrCreateUser();
@@ -20,8 +20,9 @@ export async function GET(request: NextRequest, context: { params: { sessionId: 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Await params before destructuring
-    const { sessionId } = await context.params;
+    // const { sessionId } = await context.params;
+    const segments = request.nextUrl.pathname.split('/');
+    const sessionId = segments[segments.length - 1];
 
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
@@ -53,13 +54,14 @@ export async function GET(request: NextRequest, context: { params: { sessionId: 
     return NextResponse.json(sessionDetails); // sessionDetails now includes the 'actions' array
 
   } catch (error) {
-    console.error(`Error fetching session ${context.params?.sessionId || 'unknown'}:`, error);
+    // console.error(`Error fetching session ${context.params?.sessionId || 'unknown'}:`, error);
+    console.error(`Error fetching session by ID:`, error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
 // export async function DELETE(request: Request, context: { params: Params }) {
-export async function DELETE(request: NextRequest, context: { params: { sessionId: string } }) {
+export async function DELETE(request: NextRequest) {
   // Note: This is now more like an "Update Status to Completed/Terminated" endpoint
   let sessionId: string | null = null;
   try {
@@ -68,8 +70,10 @@ export async function DELETE(request: NextRequest, context: { params: { sessionI
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const params = await context.params;
-    sessionId = params.sessionId; // Assign sessionId here
+    // const params = await context.params;
+    // sessionId = params.sessionId; // Assign sessionId here
+    const segments = request.nextUrl.pathname.split('/');
+    sessionId = segments[segments.length - 1];
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
     }

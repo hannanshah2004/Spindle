@@ -17,7 +17,7 @@ const actionSchema = z.object({
 // }
 
 // export async function POST(request: Request, context: { params: Params }) {
-export async function POST(request: NextRequest, context: { params: { sessionId: string } }) {
+export async function POST(request: NextRequest) {
   let sessionId: string | null = null;
 
   try {
@@ -28,8 +28,9 @@ export async function POST(request: NextRequest, context: { params: { sessionId:
     }
 
     // 2. Validate Params
-    const params = await context.params;
-    sessionId = params.sessionId;
+    const segments = request.nextUrl.pathname.split('/');
+    // URL is /api/v1/sessions/[sessionId]/actions, so sessionId is the second to last segment
+    sessionId = segments[segments.length - 2];
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
     }
