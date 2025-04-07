@@ -90,26 +90,25 @@ export default async function Dashboard() {
               </div>
             </div>
 
-            {/* Recent Activity Card */}
+            {/* Recent Activity Card - REPLACED */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300">
               <div className="p-6 border-b border-slate-100">
-                <h3 className="font-semibold text-slate-800 text-xl">Recent Activity</h3>
+                <h3 className="font-semibold text-slate-800 text-xl">Spindle Features</h3>
               </div>
               <div className="divide-y divide-slate-100">
                 {[
-                  { title: "Project created", description: "Website Scraper", time: "2 hours ago" },
-                  { title: "Automation run", description: "Email Campaign", time: "5 hours ago" },
-                  { title: "Settings updated", description: "Browser Configuration", time: "1 day ago" },
-                ].map((activity, index) => (
+                  { title: "Framework Compatibility", description: "Works with Playwright, Puppeteer, and Selenium"},
+                  { title: "Browser Automation", description: "Control headless browsers with a simple API"},
+                  { title: "AI Integration", description: "Add web browsing to your AI agents"},
+                ].map((feature, index) => (
                   <div key={index} className="p-6 flex items-center gap-4 hover:bg-slate-50 transition-colors">
                     <div className="bg-slate-100 p-3 rounded-full">
                       <div className="h-2 w-2 rounded-full bg-slate-900"></div>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-slate-800">{activity.title}</h4>
-                      <p className="text-slate-500">{activity.description}</p>
+                      <h4 className="font-medium text-slate-800">{feature.title}</h4>
+                      <p className="text-slate-500">{feature.description}</p>
                     </div>
-                    <span className="text-sm text-slate-400">{activity.time}</span>
                   </div>
                 ))}
               </div>
@@ -153,31 +152,16 @@ export default async function Dashboard() {
                   </div>
                 </div>
               </div>
-              <div className="bg-slate-50 p-4 border-t border-slate-200">
-                <Link
-                  href="/dashboard/settings"
-                  className="text-slate-600 text-sm hover:text-slate-900 flex items-center justify-center gap-1 transition-colors"
-                >
-                  Manage account settings
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
-              </div>
             </div>
 
-            {/* Quick Stats */}
+            {/* Spindle Image */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300">
-              <div className="p-6 border-b border-slate-100">
-                <h3 className="font-semibold text-slate-800 text-xl">Quick Stats</h3>
-              </div>
-              <div className="grid grid-cols-2 divide-x divide-slate-100">
-                <div className="p-6 text-center">
-                  <p className="text-3xl font-bold text-slate-800">12</p>
-                  <p className="text-sm text-slate-500 mt-1">Total Projects</p>
-                </div>
-                <div className="p-6 text-center">
-                  <p className="text-3xl font-bold text-slate-800">8</p>
-                  <p className="text-sm text-slate-500 mt-1">Active Automations</p>
-                </div>
+              <div className="p-6 flex justify-center items-center">
+                <img 
+                  src="/spindle.png" 
+                  alt="Spindle Logo" 
+                  className="max-w-full h-auto rounded-lg"
+                />
               </div>
             </div>
           </div>
