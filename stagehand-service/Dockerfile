@@ -66,12 +66,5 @@ RUN npm run build
 
 # Make port 3001 available to the world outside this container
 EXPOSE 3001
-
-# Define environment variables (optional, can be set at runtime)
-# ENV OPENAI_API_KEY=your_api_key_here 
-# ENV STAGEHAND_MODEL_NAME=gpt-4o
-# ENV STAGEHAND_HEADLESS=true 
-# ENV NODE_ENV=production
-
 # Run the server when the container launches
 CMD ["node", "dist/server.js"] 
