@@ -90,8 +90,8 @@ export default async function ProjectDetailPage({ params }: Props) {
     redirect("/")
   }
 
-  // const projectId = params.id
-  const { id: projectId } = await params;
+  // const { id: projectId } = await params;
+  const projectId = params.id
 
   // Fetch data in parallel
   const [project, allSessions] = await Promise.all([
