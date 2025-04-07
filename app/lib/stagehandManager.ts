@@ -146,32 +146,3 @@ export async function actOnSession(sessionId: string, action: string): Promise<{
   }
 }
 
-/**
- * Extract data from a session
- * @param sessionId The ID of the session
- * @param instruction The extraction instruction
- * @param options Additional options
- * @returns The extracted data
- */
-export async function extractFromSession(
-  sessionId: string, 
-  instruction: string, 
-  options: { 
-    schema?: z.ZodObject<z.ZodRawShape>;
-    useTextExtract?: boolean;
-    selector?: string;
-  } = {}
-) {
-  const stagehand = await getStagehand(sessionId);
-  
-  // For now, use a simple schema - would be customized for specific use cases
-  const schema = options.schema || z.object({
-    data: z.string().describe("The extracted data")
-  });
-  
-  return await stagehand.page.extract({
-    instruction,
-    schema,
-    ...options
-  });
-} 
