@@ -51,7 +51,7 @@ function StatusBadge({ status }: StatusBadgeProps) {
 }
 
 export function DataTable() {
-  const [projects, setProjects] = useState<Project[]>([
+  const [projects] = useState<Project[]>([
     {
       id: "1",
       name: "Website Scraper",
@@ -86,7 +86,7 @@ export function DataTable() {
     <Card>
       <div className="p-5 border-b border-slate-100 flex justify-between items-center">
         <h3 className="font-semibold text-slate-800">Projects</h3>
-        <Button variant="primary" size="sm">
+        <Button variant="default" size="sm">
           New Project
         </Button>
       </div>
@@ -97,7 +97,7 @@ export function DataTable() {
               <th className="text-left p-4 font-medium text-slate-500 text-sm">
                 <div className="flex items-center gap-1">
                   Name
-                  <Button variant="ghost" size="icon-sm" className="ml-1 h-6 w-6">
+                  <Button variant="ghost" size="icon" className="ml-1 h-6 w-6">
                     <ArrowUpDown className="h-3 w-3" />
                   </Button>
                 </div>
@@ -118,7 +118,7 @@ export function DataTable() {
                 </td>
                 <td className="p-4 text-sm text-slate-600">{project.lastRun}</td>
                 <td className="p-4 text-right">
-                  <Button variant="ghost" size="icon-sm">
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </td>

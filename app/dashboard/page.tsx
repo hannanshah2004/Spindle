@@ -2,6 +2,7 @@ import { UserButton } from "@clerk/nextjs"
 import { currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Home, Zap, Plus, ChevronRight } from "lucide-react"
 
 export default async function Dashboard() {
@@ -157,9 +158,11 @@ export default async function Dashboard() {
             {/* Spindle Image */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300">
               <div className="p-6 flex justify-center items-center">
-                <img 
+                <Image 
                   src="/spindle.png" 
                   alt="Spindle Logo" 
+                  width={500}
+                  height={300}
                   className="max-w-full h-auto rounded-lg"
                 />
               </div>

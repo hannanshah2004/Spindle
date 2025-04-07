@@ -346,7 +346,7 @@ export default async function SessionDetailPage({ params }: Props) {
   )
 }
 
-function CalendarDays(props: any) {
+function CalendarDays(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}

@@ -1,6 +1,5 @@
 import { Stagehand, type AvailableModel, type ActResult } from '@browserbasehq/stagehand';
 import { PrismaClient } from '@prisma/client';
-import { z } from 'zod';
 
 // Define the allowed models
 const ALLOWED_MODELS: AvailableModel[] = [

@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server"
 import { ArrowRight, CheckCircle } from "lucide-react"
 
 export default async function Home() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { userId } = await auth()
 
   return (

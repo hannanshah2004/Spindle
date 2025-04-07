@@ -30,7 +30,7 @@ export default function Tutorials() {
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-slate-800 mb-3 tracking-tight">API Documentation</h2>
           <p className="text-slate-600 text-lg">
-            Learn how to use Spindle's API to automate browser sessions programmatically.
+            Learn how to use Spindle&apos;s API to automate browser sessions programmatically.
           </p>
         </div>
 
@@ -268,7 +268,7 @@ fetch('/api/v1/sessions/your-session-id')
                   Creation
                 </h5>
                 <p className="text-slate-600">
-                  Sessions start in the 'created' status. The record is created in the database, but the browser is not
+                  Sessions start in the &apos;created&apos; status. The record is created in the database, but the browser is not
                   yet initialized.
                 </p>
               </div>
@@ -280,7 +280,7 @@ fetch('/api/v1/sessions/your-session-id')
                   Initialization
                 </h5>
                 <p className="text-slate-600">
-                  When a session is initialized, the browser is launched and the status changes to 'running'.
+                  When a session is initialized, the browser is launched and the status changes to &apos;running&apos;.
                 </p>
               </div>
               <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:border-slate-300 transition-all duration-200">
@@ -292,7 +292,7 @@ fetch('/api/v1/sessions/your-session-id')
                 </h5>
                 <p className="text-slate-600">
                   A running session can be terminated, which closes the browser but keeps the session log with a status
-                  of 'completed'.
+                  of &apos;completed&apos;.
                 </p>
               </div>
               <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:border-slate-300 transition-all duration-200">
