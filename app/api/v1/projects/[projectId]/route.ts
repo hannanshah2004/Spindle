@@ -4,11 +4,11 @@ import { getOrCreateUser } from '@/app/lib/user';
 
 const prisma = new PrismaClient();
 
-interface Params {
-  projectId: string;
-}
+// interface Params {
+//   projectId: string;
+// }
 
-export async function GET(request: Request, context: { params: Params }) {
+export async function GET(request: Request, context: { params: { projectId: string } }) {
   try {
     const user = await getOrCreateUser();
     
@@ -16,7 +16,7 @@ export async function GET(request: Request, context: { params: Params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { projectId } = context.params;
+    const { projectId } = await context.params;
 
     if (!projectId) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
@@ -42,7 +42,7 @@ export async function GET(request: Request, context: { params: Params }) {
   }
 }
 
-export async function DELETE(request: Request, context: { params: Params }) {
+export async function DELETE(request: Request, context: { params: { projectId: string } }) {
   try {
     const user = await getOrCreateUser();
     
@@ -50,7 +50,7 @@ export async function DELETE(request: Request, context: { params: Params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { projectId } = context.params;
+    const { projectId } = await context.params;
 
     if (!projectId) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });

@@ -5,11 +5,7 @@ import { initializeStagehand, removeStagehand } from '@/app/lib/stagehandManager
 
 const prisma = new PrismaClient();
 
-interface Params {
-  sessionId: string;
-}
-
-export async function POST(request: Request, context: { params: Params }) {
+export async function POST(request: Request, context: { params: { sessionId: string } }) {
   let stagehandInitialized = false;
   let sessionId: string | null = null;
 
@@ -21,7 +17,8 @@ export async function POST(request: Request, context: { params: Params }) {
     }
 
     // 2. Validate Params
-    sessionId = context.params.sessionId;
+    const params = await context.params;
+    sessionId = params.sessionId;
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
     }

@@ -11,11 +11,12 @@ const actionSchema = z.object({
   action: z.string().min(1, "Action instruction is required")
 });
 
-interface Params {
-  sessionId: string;
-}
+// interface Params {
+//   sessionId: string;
+// }
 
-export async function POST(request: Request, context: { params: Params }) {
+// export async function POST(request: Request, context: { params: Params }) {
+export async function POST(request: Request, context: { params: { sessionId: string } }) {
   let sessionId: string | null = null;
 
   try {
@@ -26,7 +27,8 @@ export async function POST(request: Request, context: { params: Params }) {
     }
 
     // 2. Validate Params
-    sessionId = context.params.sessionId;
+    const params = await context.params;
+    sessionId = params.sessionId;
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
     }

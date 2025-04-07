@@ -5,11 +5,12 @@ import { getOrCreateUser } from '@/app/lib/user'; // Import our utility
 
 const prisma = new PrismaClient();
 
-interface Params {
-  sessionId: string;
-}
+// interface Params {
+//   sessionId: string;
+// }
 
-export async function GET(request: Request, context: { params: Params }) {
+// export async function GET(request: Request, context: { params: Params }) {
+export async function GET(request: Request, context: { params: { sessionId: string } }) {
   try {
     // Get user from our database
     const user = await getOrCreateUser();
@@ -19,7 +20,7 @@ export async function GET(request: Request, context: { params: Params }) {
     }
     
     // Await params before destructuring
-    const { sessionId } = context.params;
+    const { sessionId } = await context.params;
 
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
@@ -56,7 +57,8 @@ export async function GET(request: Request, context: { params: Params }) {
   }
 }
 
-export async function DELETE(request: Request, context: { params: Params }) {
+// export async function DELETE(request: Request, context: { params: Params }) {
+export async function DELETE(request: Request, context: { params: { sessionId: string } }) {
   // Note: This is now more like an "Update Status to Completed/Terminated" endpoint
   let sessionId: string | null = null;
   try {
@@ -65,7 +67,8 @@ export async function DELETE(request: Request, context: { params: Params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    sessionId = context.params.sessionId; // Assign sessionId here
+    const params = await context.params;
+    sessionId = params.sessionId; // Assign sessionId here
     if (!sessionId) {
       return NextResponse.json({ error: 'Session ID is required' }, { status: 400 });
     }
