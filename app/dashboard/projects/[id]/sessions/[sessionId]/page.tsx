@@ -29,14 +29,7 @@ interface SessionData {
   actions: SessionActionData[]
 }
 
-type Props = {
-  params: {
-    id: string
-    sessionId: string
-  }
-}
-
-// Updated function to fetch session details including actions
+// Moved this function back before the component definition
 async function getSessionDetails(sessionId: string): Promise<SessionData | null> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.API_BASE_URL || "http://localhost:3000"
@@ -70,7 +63,8 @@ async function getSessionDetails(sessionId: string): Promise<SessionData | null>
   }
 }
 
-export default async function SessionDetailPage({ params }: Props) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default async function SessionDetailPage({ params }: any) {
   const user = await currentUser()
 
   // If user is not authenticated, redirect to home page
@@ -79,8 +73,10 @@ export default async function SessionDetailPage({ params }: Props) {
   }
 
   // Await params before accessing properties
-  const resolvedParams = await params
-  const { id: projectId, sessionId } = resolvedParams
+  // const resolvedParams = await params
+  // const { id: projectId, sessionId } = resolvedParams
+  const projectId = params.id;
+  const sessionId = params.sessionId;
 
   console.log(`[SessionDetailPage] Rendering page for Project: ${projectId}, Session: ${sessionId}`)
 
