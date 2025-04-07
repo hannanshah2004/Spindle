@@ -1,29 +1,7 @@
-// Remove the Edge Runtime setting
-// export const runtime = 'edge';
-
 import { NextResponse } from 'next/server';
-// Remove the auth import since we're using getOrCreateUser
-// import { auth } from '@clerk/nextjs/server';
 import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid'; // To generate unique session IDs
-// These imports will be needed when we implement Stagehand initialization
-// import { Stagehand, type AvailableModel } from '@browserbasehq/stagehand';
-// import { storeSession } from './sessionStore';
 import { getOrCreateUser } from '@/app/lib/user';
-
-// Define the allowed models (commented out until needed)
-/*
-const ALLOWED_MODELS: AvailableModel[] = [
-  'gpt-4o',
-  'gpt-4o-mini',
-  'gpt-4o-2024-08-06',
-  'gpt-4.5-preview',
-  'claude-3-5-sonnet-latest',
-  'claude-3-5-sonnet-20241022',
-  'claude-3-5-sonnet-20240620',
-  'claude-3-7-sonnet-latest',
-];
-*/
 
 // Use a single PrismaClient instance
 const prisma = new PrismaClient();
@@ -62,9 +40,6 @@ export async function GET() {
         createdAt: 'desc',
       },
     });
-
-    // TODO: Optionally, iterate through sessions and check live container status?
-    // For now, just returning the DB state.
 
     return NextResponse.json(sessions);
 

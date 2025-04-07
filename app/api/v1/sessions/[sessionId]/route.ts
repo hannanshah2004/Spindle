@@ -1,11 +1,6 @@
-// Remove the Edge Runtime setting
-// export const runtime = 'edge';
 
 import { NextResponse } from 'next/server';
-// import { auth } from '@clerk/nextjs/server'; // Remove this
 import { PrismaClient } from '@prisma/client';
-// Switch to the new stagehandManager
-// import { removeSession } from '../sessionStore';
 import { removeStagehand } from '@/app/lib/stagehandManager';
 import { getOrCreateUser } from '@/app/lib/user'; // Import our utility
 
