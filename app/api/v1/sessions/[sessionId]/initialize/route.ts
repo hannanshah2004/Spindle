@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getOrCreateUser } from '@/app/lib/user';
 import { initializeStagehand, removeStagehand } from '@/app/lib/stagehandManager';
 
 const prisma = new PrismaClient();
 
-export async function POST(request: Request, context: { params: { sessionId: string } }) {
+export async function POST(request: NextRequest, context: { params: { sessionId: string } }) {
   let stagehandInitialized = false;
   let sessionId: string | null = null;
 

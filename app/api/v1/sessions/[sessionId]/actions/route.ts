@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { PrismaClient } from '@prisma/client'; // Remove SessionAction import
 import { getOrCreateUser } from '@/app/lib/user';
 import { actOnSession } from '@/app/lib/stagehandManager'; // Only need actOnSession
@@ -16,7 +17,7 @@ const actionSchema = z.object({
 // }
 
 // export async function POST(request: Request, context: { params: Params }) {
-export async function POST(request: Request, context: { params: { sessionId: string } }) {
+export async function POST(request: NextRequest, context: { params: { sessionId: string } }) {
   let sessionId: string | null = null;
 
   try {

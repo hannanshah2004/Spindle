@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { removeStagehand } from '@/app/lib/stagehandManager';
 import { getOrCreateUser } from '@/app/lib/user'; // Import our utility
@@ -10,7 +11,7 @@ const prisma = new PrismaClient();
 // }
 
 // export async function GET(request: Request, context: { params: Params }) {
-export async function GET(request: Request, context: { params: { sessionId: string } }) {
+export async function GET(request: NextRequest, context: { params: { sessionId: string } }) {
   try {
     // Get user from our database
     const user = await getOrCreateUser();
@@ -58,7 +59,7 @@ export async function GET(request: Request, context: { params: { sessionId: stri
 }
 
 // export async function DELETE(request: Request, context: { params: Params }) {
-export async function DELETE(request: Request, context: { params: { sessionId: string } }) {
+export async function DELETE(request: NextRequest, context: { params: { sessionId: string } }) {
   // Note: This is now more like an "Update Status to Completed/Terminated" endpoint
   let sessionId: string | null = null;
   try {

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getOrCreateUser } from '@/app/lib/user';
 
@@ -8,7 +9,7 @@ const prisma = new PrismaClient();
 //   projectId: string;
 // }
 
-export async function GET(request: Request, context: { params: { projectId: string } }) {
+export async function GET(request: NextRequest, context: { params: { projectId: string } }) {
   try {
     const user = await getOrCreateUser();
     
@@ -42,7 +43,7 @@ export async function GET(request: Request, context: { params: { projectId: stri
   }
 }
 
-export async function DELETE(request: Request, context: { params: { projectId: string } }) {
+export async function DELETE(request: NextRequest, context: { params: { projectId: string } }) {
   try {
     const user = await getOrCreateUser();
     
