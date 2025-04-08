@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 
 export default async function SignUpPage() {
-  // If already signed in, redirect to dashboard
+  // If already signed in, redirect to dashboard redeploy
   const { userId } = await auth();
   if (userId) {
     redirect('/dashboard');
