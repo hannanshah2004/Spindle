@@ -225,6 +225,32 @@ export default async function SessionDetailPage({ params }: any) {
             </div>
           </div>
 
+          {/* Twitch Stream Embed */}
+          <div className="mb-12">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300">
+              <div className="p-6 border-b border-slate-100 flex items-center gap-3">
+                 {/* You might want a specific icon here */}
+                 <div className="bg-slate-100 p-2 rounded-lg">
+                    {/* Placeholder Icon */}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-slate-700">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9A2.25 2.25 0 0 0 13.5 5.25h-9a2.25 2.25 0 0 0-2.25 2.25v9A2.25 2.25 0 0 0 4.5 18.75Z" />
+                    </svg>
+                 </div>
+                 <h3 className="font-semibold text-slate-800 text-xl">Live Session View</h3>
+              </div>
+              <div className="p-6 aspect-video"> {/* Use aspect-video for 16:9 */}
+                <iframe
+                  src={`https://player.twitch.tv/?channel=spindlefeedec2&parent=${process.env.NEXT_PUBLIC_APP_URL ? new URL(process.env.NEXT_PUBLIC_APP_URL).hostname : 'localhost'}&muted=true`}
+                  height="100%"
+                  width="100%"
+                  allowFullScreen={true}
+                  className="w-full h-full border-0"
+                  title="Twitch Stream for spindlefeedec2"
+                ></iframe>
+              </div>
+            </div>
+          </div>
+
           {/* Add Action Form Component */}
           <div className="mb-12">
             {session.status === "running" ? (
