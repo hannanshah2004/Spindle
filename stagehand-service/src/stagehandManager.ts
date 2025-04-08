@@ -51,12 +51,10 @@ export async function initializeStagehand(sessionId: string): Promise<Stagehand>
       localBrowserLaunchOptions: {
         // Make headless mode configurable via env var, default to true for prod
         headless: process.env.STAGEHAND_HEADLESS !== 'false', 
-        // Add necessary args for running in Docker/Linux
+        // Windows-compatible browser arguments
         args: [
-            '--disable-gpu',
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage' // Often needed in constrained environments
+          '--disable-gpu',
+          '--no-sandbox'
         ]
       }
     });
