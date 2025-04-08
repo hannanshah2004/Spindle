@@ -225,7 +225,7 @@ export default async function SessionDetailPage({ params }: any) {
             </div>
           </div>
 
-          {/* Twitch Stream Embed */}
+          {/* Twitch Stream Embedding */}
           <div className="mb-12">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-md transition-all duration-300">
               <div className="p-6 border-b border-slate-100 flex items-center gap-3">
